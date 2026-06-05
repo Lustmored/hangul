@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { HANGUL_ITEMS } from '../src/data/hangul';
-import { advanceAfterResult, createInitialSession, createNextQuestion, getRemainingSeconds, resolveAnswer } from '../src/game/quiz';
+import { advanceAfterResult, buildOptions, createInitialSession, createNextQuestion, getDistractorScore, getRemainingSeconds, resolveAnswer } from '../src/game/quiz';
 
 vi.spyOn(Date, 'now').mockImplementation(() => 10_000);
 
@@ -48,5 +48,35 @@ describe('quiz generation', () => {
     expect(getRemainingSeconds(10, 0, 2_100)).toBe(8);
     expect(getRemainingSeconds(10, 0, 9_100)).toBe(1);
     expect(getRemainingSeconds(10, 0, 10_000)).toBe(0);
+  });
+
+  it('prefers directly confusable jamo over unrelated distractors', () => {
+    const source = HANGUL_ITEMS.find((item) => item.id === 'jamo-ㄷ')!;
+    const close = HANGUL_ITEMS.find((item) => item.id === 'jamo-ㅌ')!;
+    const far = HANGUL_ITEMS.find((item) => item.id === 'jamo-ㅁ')!;
+
+    expect(getDistractorScore(source, close)).toBeGreaterThan(getDistractorScore(source, far));
+  });
+
+  it('prefers syllables that differ by one component over distant syllables', () => {
+    const source = HANGUL_ITEMS.find((item) => item.glyph === '서')!;
+    const close = HANGUL_ITEMS.find((item) => item.glyph === '소')!;
+    const far = HANGUL_ITEMS.find((item) => item.glyph === '빵')!;
+
+    expect(getDistractorScore(source, close)).toBeGreaterThan(getDistractorScore(source, far));
+  });
+
+  it('builds options with at least one close distractor for a syllable', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+
+    const source = HANGUL_ITEMS.find((item) => item.glyph === '서')!;
+    const options = buildOptions(source, 'hangul-to-latin');
+    const closeRomanizations = new Set(['so', 'seu', 'seo', 'sseo', 'jeo']);
+
+    expect(options).toHaveLength(4);
+    expect(options.some((option) => option.id !== source.id && closeRomanizations.has(option.label))).toBe(true);
+
+    vi.restoreAllMocks();
+    vi.spyOn(Date, 'now').mockImplementation(() => 10_000);
   });
 });

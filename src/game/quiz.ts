@@ -2,11 +2,11 @@ import { HANGUL_ITEMS, getTimerPresetById, type QuestionMode, type QuizItem, typ
 import type { QuestionOption, QuizQuestion, QuestionResult, QuizSession } from './types';
 
 const BUCKET_WEIGHTS: Array<{ minScore: number; weights: Record<number, number> }> = [
-  { minScore: 0, weights: { 1: 10, 2: 3, 3: 1 } },
-  { minScore: 5, weights: { 1: 6, 2: 5, 3: 3, 4: 1 } },
-  { minScore: 10, weights: { 1: 3, 2: 4, 3: 5, 4: 3, 5: 1 } },
-  { minScore: 20, weights: { 2: 3, 3: 4, 4: 5, 5: 4, 6: 2, 8: 1 } },
-  { minScore: 35, weights: { 3: 2, 4: 4, 5: 5, 6: 5, 7: 3, 8: 4 } }
+  { minScore: 0, weights: { 1: 8, 2: 4, 3: 3 } },
+  { minScore: 4, weights: { 1: 4, 2: 4, 3: 5, 4: 3 } },
+  { minScore: 8, weights: { 1: 2, 2: 3, 3: 5, 4: 4, 5: 2 } },
+  { minScore: 14, weights: { 2: 2, 3: 4, 4: 5, 5: 4, 6: 3, 8: 1 } },
+  { minScore: 24, weights: { 3: 2, 4: 3, 5: 5, 6: 5, 7: 4, 8: 4 } }
 ];
 
 export function createInitialSession(timerPresetId: TimerPresetId): QuizSession {
@@ -120,16 +120,30 @@ export function formatDuration(totalMs: number): string {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-function buildOptions(promptItem: QuizItem, mode: QuestionMode): QuestionOption[] {
+export function buildOptions(promptItem: QuizItem, mode: QuestionMode): QuestionOption[] {
   const pool = HANGUL_ITEMS.filter((candidate) => candidate.id !== promptItem.id && candidate.type === promptItem.type);
-  const rankedPool = pool
+  const scoredPool = pool
     .map((candidate) => ({ candidate, score: getDistractorScore(promptItem, candidate) }))
-    .sort((left, right) => right.score - left.score)
-    .slice(0, 24)
-    .map((entry) => entry.candidate);
+    .sort((left, right) => right.score - left.score);
 
-  const distractors = pickDistinctRandom(rankedPool, 3);
-  const items = shuffle([promptItem, ...distractors]);
+  const veryClose = scoredPool.filter((entry) => entry.score >= 28).map((entry) => entry.candidate);
+  const close = scoredPool.filter((entry) => entry.score >= 20).map((entry) => entry.candidate);
+  const medium = scoredPool.filter((entry) => entry.score >= 14).map((entry) => entry.candidate);
+  const ranked = scoredPool.map((entry) => entry.candidate);
+
+  const chosen: QuizItem[] = [];
+  fillFromPool(chosen, veryClose, 2);
+  if (chosen.length < 2) {
+    fillFromPool(chosen, close, 2 - chosen.length);
+  }
+  if (chosen.length < 3) {
+    fillFromPool(chosen, medium, 3 - chosen.length);
+  }
+  if (chosen.length < 3) {
+    fillFromPool(chosen, ranked, 3 - chosen.length);
+  }
+
+  const items = shuffle([promptItem, ...chosen.slice(0, 3)]);
 
   return items.map((item) => ({
     id: item.id,
@@ -138,28 +152,80 @@ function buildOptions(promptItem: QuizItem, mode: QuestionMode): QuestionOption[
   }));
 }
 
-function getDistractorScore(source: QuizItem, candidate: QuizItem): number {
+export function getDistractorScore(source: QuizItem, candidate: QuizItem): number {
   let score = 0;
 
   if (candidate.difficultyBucket === source.difficultyBucket) {
-    score += 5;
+    score += 4;
+  } else if (Math.abs(candidate.difficultyBucket - source.difficultyBucket) === 1) {
+    score += 2;
   }
 
-  if (Math.abs(candidate.difficultyBucket - source.difficultyBucket) === 1) {
-    score += 3;
+  if (source.type === 'jamo') {
+    const sameJamoKind = getJamoKind(source) === getJamoKind(candidate);
+    if (sameJamoKind) {
+      score += 8;
+    }
+
+    if (isDirectConfusable(source.key, candidate.key, source.confusableWith, candidate.confusableWith)) {
+      score += 18;
+    }
+
+    score += sharedCount(source.families, candidate.families) * 4;
+
+    if (source.romanization.length === candidate.romanization.length) {
+      score += 2;
+    }
+
+    if (source.romanization[0] && source.romanization[0] === candidate.romanization[0]) {
+      score += 2;
+    }
+
+    return score;
   }
 
-  const sharedConfusable = candidate.confusableWith.some((value) => source.confusableWith.includes(value));
-  if (sharedConfusable) {
+  const sameOnset = source.components.onsetKey === candidate.components.onsetKey;
+  const sameVowel = source.components.vowelKey === candidate.components.vowelKey;
+  const sameFinal = source.components.finalKey === candidate.components.finalKey;
+
+  if (sameOnset) {
+    score += 10;
+  } else if (isComponentConfusable(source.components.onsetKey, candidate.components.onsetKey, source.componentConfusables.onset, candidate.componentConfusables.onset)) {
+    score += 7;
+  }
+
+  if (sameVowel) {
+    score += 10;
+  } else if (isComponentConfusable(source.components.vowelKey, candidate.components.vowelKey, source.componentConfusables.vowel, candidate.componentConfusables.vowel)) {
+    score += 7;
+  }
+
+  if (sameFinal) {
     score += 6;
+  } else if (isComponentConfusable(source.components.finalKey, candidate.components.finalKey, source.componentConfusables.final, candidate.componentConfusables.final)) {
+    score += 4;
   }
 
-  const sharedTags = candidate.tags.filter((tag) => source.tags.includes(tag)).length;
-  score += sharedTags;
+  const sameComponentCount = Number(sameOnset) + Number(sameVowel) + Number(sameFinal);
+  if (sameComponentCount === 2) {
+    score += 12;
+  } else if (sameComponentCount === 1) {
+    score += 4;
+  }
 
-  if (candidate.romanization[0] === source.romanization[0]) {
+  if (source.tags.includes('open') === candidate.tags.includes('open')) {
+    score += 2;
+  }
+
+  if (source.romanization.length === candidate.romanization.length) {
     score += 1;
   }
+
+  if (source.romanization[0] && source.romanization[0] === candidate.romanization[0]) {
+    score += 1;
+  }
+
+  score += sharedCount(source.families, candidate.families);
 
   return score;
 }
@@ -178,6 +244,47 @@ function pickBucket(score: number): number {
   }
 
   return Number(entries[entries.length - 1]![0]);
+}
+
+function getJamoKind(item: QuizItem): 'consonant' | 'vowel' | 'other' {
+  if (item.components.vowelKey) {
+    return 'vowel';
+  }
+  if (item.components.onsetKey) {
+    return 'consonant';
+  }
+  return 'other';
+}
+
+function isDirectConfusable(sourceKey: string, candidateKey: string, sourceConfusables: string[], candidateConfusables: string[]): boolean {
+  return sourceConfusables.includes(candidateKey) || candidateConfusables.includes(sourceKey);
+}
+
+function isComponentConfusable(
+  sourceKey: string | null,
+  candidateKey: string | null,
+  sourceConfusables: string[],
+  candidateConfusables: string[]
+): boolean {
+  if (!sourceKey || !candidateKey) {
+    return false;
+  }
+
+  return sourceConfusables.includes(candidateKey) || candidateConfusables.includes(sourceKey);
+}
+
+function sharedCount(left: string[], right: string[]): number {
+  const rightSet = new Set(right);
+  return left.reduce((count, value) => count + (rightSet.has(value) ? 1 : 0), 0);
+}
+
+function fillFromPool(target: QuizItem[], source: QuizItem[], count: number): void {
+  if (count <= 0) {
+    return;
+  }
+
+  const remaining = source.filter((item) => !target.some((picked) => picked.id === item.id));
+  target.push(...pickDistinctRandom(remaining, count));
 }
 
 function pickRandom<T>(items: readonly T[]): T {
