@@ -15,19 +15,12 @@ interface EndScreenProps {
 
 export function EndScreen({ variant, score, elapsedMs, livesLost, timerPresetId, onPlayAgain, onBackToHome }: EndScreenProps) {
   const title = variant === 'perfectRun' ? 'Perfect Run' : variant === 'win' ? 'You Win' : 'Game Over';
-  const subtitle = variant === 'perfectRun'
-    ? 'Full clear. No mistakes. Clean execution.'
-    : variant === 'win'
-      ? 'You cleared the entire pool.'
-      : 'The run is over. Spin up another one.';
   const timer = getTimerPresetById(timerPresetId);
 
   return (
     <main className="screen shell shell--hero">
       <div className={`hero-card hero-card--result hero-card--${variant}`}>
-        <p className="eyebrow">{variant === 'perfectRun' ? 'Flawless finish' : 'Run complete'}</p>
         <h1>{title}</h1>
-        <p className="hero-copy">{subtitle}</p>
         <div className="hero-stats hero-stats--result">
           <div className="stat-card">
             <span className="stat-card__label">Score</span>

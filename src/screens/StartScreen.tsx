@@ -17,9 +17,7 @@ export function StartScreen({ settings, scoreboards, onStartGame, onOpenHistory,
   return (
     <main className="screen shell shell--hero">
       <div className="hero-card">
-        <p className="eyebrow">Dark mode reading arcade</p>
         <h1>{APP_NAME}</h1>
-        <p className="hero-copy">Fast Hangul recognition. Rising difficulty. One more run.</p>
         <div className="hero-stats">
           <div className="stat-card">
             <span className="stat-card__label">Current Timer</span>

@@ -88,24 +88,9 @@ button {
   line-height: 0.95;
 }
 
-.eyebrow {
-  margin: 0 0 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--accent-strong);
-  font-size: 0.72rem;
-}
-
-.hero-copy,
 .muted,
 .quiz-copy {
   color: var(--text-muted);
-}
-
-.hero-copy {
-  font-size: 1.05rem;
-  max-width: 28ch;
-  margin: 16px auto 0;
 }
 
 .hero-stats {
@@ -135,8 +120,10 @@ button {
 .stat-card {
   padding: 14px 16px;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
 }
 
 .stat-card--large {
@@ -154,6 +141,10 @@ button {
 .history-row strong,
 .hud-chip__value {
   font-size: 1.15rem;
+}
+
+.stat-card strong {
+  text-align: right;
 }
 
 .stack-actions,
@@ -468,7 +459,6 @@ button {
   border-color: rgba(255, 104, 125, 0.54);
   background: rgba(255, 104, 125, 0.16);
 }
-
 
 .quiz-action-lane {
   min-height: 56px;
