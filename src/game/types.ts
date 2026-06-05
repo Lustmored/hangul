@@ -4,7 +4,7 @@ export type AppScreen = 'start' | 'settings' | 'history' | 'quiz' | 'gameOver' |
 export type { TimerPresetId };
 
 export interface AppSettings {
-  soundEnabled: boolean;
+  sfxVolume: number;
   timerPresetId: TimerPresetId;
 }
 

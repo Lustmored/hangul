@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useReducer } from 'react';
+import { useEffect, useMemo, useReducer, useRef } from 'react';
+import { createSfxController } from '../audio';
 import { Modal } from '../components/Modal';
 import { EndScreen } from '../screens/EndScreen';
 import { QuizScreen } from '../screens/QuizScreen';
@@ -13,9 +14,11 @@ import type { SavedRun, QuizSession } from '../game/types';
 export function App() {
   const initialState = useMemo(() => createInitialAppState(loadSettings(), loadScoreboards()), []);
   const [state, dispatch] = useReducer(reducer, initialState);
+  const sfxRef = useRef(createSfxController(initialState.settings.sfxVolume));
 
   useEffect(() => {
     saveSettings(state.settings);
+    sfxRef.current.setVolume(state.settings.sfxVolume);
   }, [state.settings]);
 
   useEffect(() => {
@@ -78,6 +81,16 @@ export function App() {
 
     const { nextSession, finished } = resolveAnswer(session, selectedOptionId);
 
+    if (nextSession.lastResult) {
+      if (nextSession.lastResult.outcome === 'correct') {
+        sfxRef.current.play('correct');
+      } else if (nextSession.lastResult.outcome === 'wrong') {
+        sfxRef.current.play('wrong');
+      } else {
+        sfxRef.current.play('timeout');
+      }
+    }
+
     if (!finished) {
       dispatch({ type: 'set-session', session: nextSession });
       return;
@@ -94,6 +107,14 @@ export function App() {
       completedAt: new Date().toISOString()
     };
 
+    if (perfectClear) {
+      sfxRef.current.play('perfect');
+    } else if (finished === 'full-clear') {
+      sfxRef.current.play('win');
+    } else {
+      sfxRef.current.play('gameover');
+    }
+
     const updatedBoards = saveRun(state.scoreboards, run);
     dispatch({
       type: 'finish-run',
@@ -109,6 +130,7 @@ export function App() {
       return;
     }
 
+    sfxRef.current.play('next');
     dispatch({
       type: 'set-session',
       session: advanceAfterResult(state.session, state.settings.timerPresetId)
@@ -116,6 +138,7 @@ export function App() {
   };
 
   const handlePlayAgain = () => {
+    sfxRef.current.play('start');
     dispatch({ type: 'set-session', session: createInitialSession(state.settings.timerPresetId) });
   };
 
@@ -130,7 +153,10 @@ export function App() {
         <StartScreen
           settings={state.settings}
           scoreboards={state.scoreboards}
-          onStartGame={() => dispatch({ type: 'start-game' })}
+          onStartGame={() => {
+            sfxRef.current.play('start');
+            dispatch({ type: 'start-game' });
+          }}
           onOpenHistory={() => dispatch({ type: 'open-history' })}
           onOpenSettings={() => dispatch({ type: 'open-settings' })}
         />
@@ -159,7 +185,10 @@ export function App() {
           session={state.session}
           animatedScore={state.animatedScore}
           animatedDamage={state.animatedDamage}
-          onAnswer={(optionId) => handleAnswer(state.session, optionId)}
+          onAnswer={(optionId) => {
+            sfxRef.current.play('select');
+            handleAnswer(state.session, optionId);
+          }}
           onTimeout={() => handleAnswer(state.session, null)}
           onNext={handleNextQuestion}
         />

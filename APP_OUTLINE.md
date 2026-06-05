@@ -475,7 +475,7 @@ Run History screen for MVP:
 
 Settings screen for MVP:
 
-- `Sound` on/off
+- `SFX volume` slider (`0-100%`)
 - `Timer` preset selector:
   - `Blitz (3s)`
   - `Quick (5s)`
@@ -598,6 +598,8 @@ Status-text colors should differ by state:
 For the first version:
 
 - use `SFX` only
+- expose an `SFX volume` slider in settings
+- `0%` acts as mute
 - no background music is required
 
 ## Win and Perfect Clear

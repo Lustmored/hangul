@@ -5,9 +5,10 @@ const SETTINGS_KEY = 'hangul-rush:settings';
 const RUN_HISTORY_KEY = 'hangul-rush:run-history';
 
 const defaultScoreboard = (): Scoreboard => ({ bestScore: 0, recentRuns: [] });
+const DEFAULT_SFX_VOLUME = 85;
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  soundEnabled: true,
+  sfxVolume: DEFAULT_SFX_VOLUME,
   timerPresetId: 'normal'
 };
 
@@ -18,11 +19,17 @@ export function loadSettings(): AppSettings {
   }
 
   try {
-    const parsed = JSON.parse(raw) as Partial<AppSettings>;
+    const parsed = JSON.parse(raw) as Partial<AppSettings & { soundEnabled?: boolean }>;
     const validTimer = TIMER_PRESETS.some((preset) => preset.id === parsed.timerPresetId);
+    const parsedVolume =
+      typeof parsed.sfxVolume === 'number'
+        ? parsed.sfxVolume
+        : typeof parsed.soundEnabled === 'boolean'
+          ? (parsed.soundEnabled ? DEFAULT_SFX_VOLUME : 0)
+          : DEFAULT_SETTINGS.sfxVolume;
 
     return {
-      soundEnabled: parsed.soundEnabled ?? DEFAULT_SETTINGS.soundEnabled,
+      sfxVolume: clampVolume(parsedVolume),
       timerPresetId: validTimer ? (parsed.timerPresetId as TimerPresetId) : DEFAULT_SETTINGS.timerPresetId
     };
   } catch {
@@ -31,7 +38,13 @@ export function loadSettings(): AppSettings {
 }
 
 export function saveSettings(settings: AppSettings): void {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  localStorage.setItem(
+    SETTINGS_KEY,
+    JSON.stringify({
+      ...settings,
+      sfxVolume: clampVolume(settings.sfxVolume)
+    })
+  );
 }
 
 export function loadScoreboards(): ScoreboardsByTimer {
@@ -53,7 +66,7 @@ export function loadScoreboards(): ScoreboardsByTimer {
 
       seed[preset.id] = {
         bestScore: typeof source.bestScore === 'number' ? source.bestScore : 0,
-        recentRuns: Array.isArray(source.recentRuns) ? source.recentRuns as SavedRun[] : []
+        recentRuns: Array.isArray(source.recentRuns) ? (source.recentRuns as SavedRun[]) : []
       };
     }
 
@@ -80,4 +93,8 @@ export function saveRun(scoreboards: ScoreboardsByTimer, run: SavedRun): Scorebo
 export function resetLocalData(): void {
   localStorage.removeItem(SETTINGS_KEY);
   localStorage.removeItem(RUN_HISTORY_KEY);
+}
+
+function clampVolume(value: number): number {
+  return Math.min(100, Math.max(0, Math.round(value)));
 }

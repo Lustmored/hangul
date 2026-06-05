@@ -10,6 +10,8 @@ interface SettingsScreenProps {
 }
 
 export function SettingsScreen({ settings, onChange, onBack, onReset }: SettingsScreenProps) {
+  const volumeLabel = settings.sfxVolume === 0 ? 'Muted' : `${settings.sfxVolume}%`;
+
   return (
     <main className="screen shell">
       <div className="panel app-view app-view--panel">
@@ -19,18 +21,34 @@ export function SettingsScreen({ settings, onChange, onBack, onReset }: Settings
 
         <div className="app-view__middle app-view__middle--scrollable app-view__middle--settings">
           <section className="section-block section-block--first">
-            <div className="section-block__head">
-              <h2>Sound</h2>
-              <button
-                type="button"
-                className={`toggle ${settings.soundEnabled ? 'toggle--on' : ''}`}
-                aria-pressed={settings.soundEnabled}
-                onClick={() => onChange({ ...settings, soundEnabled: !settings.soundEnabled })}
-              >
-                <span>{settings.soundEnabled ? 'On' : 'Off'}</span>
-              </button>
+            <div className="setting-card">
+              <div className="setting-card__head">
+                <h2>SFX Volume</h2>
+                <strong className="setting-card__value">{volumeLabel}</strong>
+              </div>
+
+              <div className="volume-slider-card">
+                <label className="volume-slider" htmlFor="sfx-volume">
+                  <span className="sr-only">Set SFX volume</span>
+                  <input
+                    id="sfx-volume"
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value={settings.sfxVolume}
+                    style={{ ['--slider-fill' as string]: `${settings.sfxVolume}%` }}
+                    onChange={(event) => onChange({ ...settings, sfxVolume: Number(event.target.value) })}
+                  />
+                </label>
+                <div className="volume-slider__legend" aria-hidden="true">
+                  <span>Mute</span>
+                  <span>Max</span>
+                </div>
+              </div>
+
+              <p className="muted">SFX only. No background music in the first version.</p>
             </div>
-            <p className="muted">SFX only. No background music in the first version.</p>
           </section>
 
           <section className="section-block">
