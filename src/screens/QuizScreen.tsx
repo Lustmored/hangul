@@ -23,7 +23,7 @@ export function QuizScreen({ session, animatedScore, animatedDamage, onAnswer, o
       return undefined;
     }
 
-    const interval = window.setInterval(() => setNow(Date.now()), 50);
+    const interval = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(interval);
   }, [result, session.questionStartedAt]);
 
@@ -71,8 +71,7 @@ export function QuizScreen({ session, animatedScore, animatedDamage, onAnswer, o
             <Button block className="quiz-next-button" onClick={onNext}>Next</Button>
           ) : (
             <QuestionProgressBar
-              now={now}
-              questionStartedAt={session.questionStartedAt}
+              questionKey={session.questionStartedAt}
               timeLimitSeconds={question.timeLimitSeconds}
             />
           )}
@@ -91,28 +90,22 @@ function QuestionTimer({ remainingSeconds }: { remainingSeconds: number | null }
 }
 
 function QuestionProgressBar({
-  now,
-  questionStartedAt,
+  questionKey,
   timeLimitSeconds
 }: {
-  now: number;
-  questionStartedAt: number | null;
+  questionKey: number | null;
   timeLimitSeconds: number | null;
 }) {
-  if (questionStartedAt === null || timeLimitSeconds === null) {
+  if (questionKey === null || timeLimitSeconds === null) {
     return <div className="question-progress question-progress--untimed" aria-label="Untimed question" />;
   }
-
-  const elapsedMs = Math.max(0, now - questionStartedAt);
-  const totalMs = timeLimitSeconds * 1000;
-  const progress = Math.max(0, Math.min(1, elapsedMs / totalMs));
-  const hue = Math.max(0, Math.round((1 - progress) * 120));
 
   return (
     <div className="question-progress" aria-label="Question timer progress">
       <div
-        className="question-progress__fill"
-        style={{ width: `${progress * 100}%`, backgroundColor: `hsl(${hue} 80% 50%)` }}
+        key={questionKey}
+        className="question-progress__fill question-progress__fill--animated"
+        style={{ animationDuration: `${timeLimitSeconds}s` }}
       />
     </div>
   );
