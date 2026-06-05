@@ -352,7 +352,7 @@ Chosen model:
   - `Normal` = `7s`
   - `Relaxed` = `10s`
   - `No Timer`
-- the initial default should be `10s`
+- the initial default should be `7s`
 
 ## Score
 
@@ -409,7 +409,7 @@ Without a backend, data should be stored locally in the browser, for example via
 For MVP, the app should store:
 
 - best score
-- the last 10 runs
+- full run history
 - selected settings
 
 Each saved run should include at least:
@@ -424,7 +424,7 @@ Best-score handling:
 
 - runs should be separated by timer preset
 - each timer preset should have its own best score
-- each timer preset should have its own recent run list
+- each timer preset should have its own run history list
 - `No Timer` should not compete directly with timed modes
 
 ## UX Requirements

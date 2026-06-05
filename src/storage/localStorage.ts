@@ -8,7 +8,7 @@ const defaultScoreboard = (): Scoreboard => ({ bestScore: 0, recentRuns: [] });
 
 export const DEFAULT_SETTINGS: AppSettings = {
   soundEnabled: true,
-  timerPresetId: 'relaxed'
+  timerPresetId: 'normal'
 };
 
 export function loadSettings(): AppSettings {
@@ -53,7 +53,7 @@ export function loadScoreboards(): ScoreboardsByTimer {
 
       seed[preset.id] = {
         bestScore: typeof source.bestScore === 'number' ? source.bestScore : 0,
-        recentRuns: Array.isArray(source.recentRuns) ? source.recentRuns.slice(0, 10) as SavedRun[] : []
+        recentRuns: Array.isArray(source.recentRuns) ? source.recentRuns as SavedRun[] : []
       };
     }
 
@@ -69,7 +69,7 @@ export function saveRun(scoreboards: ScoreboardsByTimer, run: SavedRun): Scorebo
     ...scoreboards,
     [run.timerPresetId]: {
       bestScore: Math.max(existing.bestScore, run.score),
-      recentRuns: [run, ...existing.recentRuns].slice(0, 10)
+      recentRuns: [run, ...existing.recentRuns]
     }
   };
 

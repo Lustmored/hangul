@@ -43,38 +43,48 @@ export function QuizScreen({ session, animatedScore, animatedDamage, onAnswer, o
 
   return (
     <main className="screen shell shell--quiz" onClick={result ? onNext : undefined}>
-      <div className="quiz-card">
-        <QuizHud
-          lives={session.lives}
-          score={session.score}
-          elapsedMs={liveElapsedMs}
-          animatedScore={animatedScore}
-          animatedDamage={animatedDamage}
-        />
-
-        <div className={promptClassName}>{question.prompt}</div>
-
-        <div className="quiz-status-lane">
-          {statusContent}
+      <div className="quiz-card app-view app-view--quiz">
+        <div className="app-view__top">
+          <QuizHud
+            lives={session.lives}
+            score={session.score}
+            elapsedMs={liveElapsedMs}
+            animatedScore={animatedScore}
+            animatedDamage={animatedDamage}
+          />
         </div>
 
-        <AnswerGrid
-          options={question.options}
-          disabled={Boolean(result)}
-          selectedOptionId={result?.selectedOptionId ?? null}
-          correctOptionId={result?.correctOptionId ?? null}
-          onSelect={onAnswer}
-        />
+        <div className="app-view__middle app-view__middle--quiz">
+          <div className="quiz-stage-top">
+            <div className={promptClassName}>{question.prompt}</div>
+          </div>
 
-        <div className="quiz-action-lane" onClick={result ? (event) => event.stopPropagation() : undefined}>
-          {result ? (
-            <Button block className="quiz-next-button" onClick={onNext}>Next</Button>
-          ) : (
-            <QuestionProgressBar
-              questionKey={session.questionStartedAt}
-              timeLimitSeconds={question.timeLimitSeconds}
+          <div className="quiz-stage-bottom">
+            <div className="quiz-status-lane">
+              {statusContent}
+            </div>
+
+            <AnswerGrid
+              options={question.options}
+              disabled={Boolean(result)}
+              selectedOptionId={result?.selectedOptionId ?? null}
+              correctOptionId={result?.correctOptionId ?? null}
+              onSelect={onAnswer}
             />
-          )}
+          </div>
+        </div>
+
+        <div className="app-view__bottom" onClick={result ? (event) => event.stopPropagation() : undefined}>
+          <div className="quiz-action-lane">
+            {result ? (
+              <Button block className="quiz-next-button" onClick={onNext}>Next</Button>
+            ) : (
+              <QuestionProgressBar
+                questionKey={session.questionStartedAt}
+                timeLimitSeconds={question.timeLimitSeconds}
+              />
+            )}
+          </div>
         </div>
       </div>
     </main>
