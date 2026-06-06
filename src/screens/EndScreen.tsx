@@ -1,4 +1,5 @@
 import { Button } from '../components/Button';
+import { BrandWordmark } from '../components/BrandWordmark';
 import { getDifficultyPresetById } from '../data/hangul';
 import { formatDuration } from '../game/quiz';
 import type { DifficultyId } from '../data/hangul';
@@ -21,11 +22,12 @@ export function EndScreen({ variant, score, elapsedMs, livesLost, difficultyId, 
   return (
     <main className="screen shell shell--hero">
       <div className={`hero-card hero-card--result hero-card--${variant} app-view app-view--hero`}>
-        <div className="app-view__top app-view__top--center">
-          <h1>{title}</h1>
+        <div className="app-view__top app-view__top--center app-view__top--result">
+          <BrandWordmark className="brand-wordmark--result" />
         </div>
 
         <div className="app-view__middle app-view__middle--center">
+          <h1 className="result-title">{title}</h1>
           <div className="hero-stats hero-stats--result">
             <div className="stat-card">
               <span className="stat-card__label">Score</span>

@@ -26,6 +26,7 @@
 html,
 body,
 #root {
+  height: 100%;
   min-height: 100%;
 }
 
@@ -34,6 +35,7 @@ body {
   min-height: 100vh;
   background: var(--bg);
   color: inherit;
+  overflow: hidden;
 }
 
 button,
@@ -51,15 +53,13 @@ button {
 }
 
 .shell {
+  height: 100%;
   min-height: 100vh;
   padding: 20px;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
-}
-
-.shell--hero {
-  padding: 24px;
+  overflow: hidden;
 }
 
 .screen {
@@ -69,18 +69,36 @@ button {
 .hero-card,
 .panel,
 .quiz-card {
+  position: relative;
   width: min(100%, 720px);
-  height: calc(100dvh - 40px);
+  height: 820px;
+  max-height: calc(100vh - 40px);
   border: 1px solid var(--border);
   border-radius: 28px;
   background: var(--panel);
   box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
+  overflow: hidden;
 }
 
 .hero-card,
 .panel {
   padding: 24px;
+}
+
+.hero-card::before,
+.panel::before,
+.quiz-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/logo.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: min(62vw, 520px);
+  opacity: 0.055;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .hero-card {
@@ -94,8 +112,25 @@ button {
   line-height: 0.95;
 }
 
+.brand-wordmark {
+  display: block;
+  width: min(100%, 540px);
+  height: auto;
+  margin: 0 auto;
+}
+
+.brand-wordmark--subpage {
+  width: min(100%, 540px);
+}
+
+.brand-wordmark--result {
+  width: min(100%, 460px);
+}
+
 
 .app-view {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
 }
@@ -107,6 +142,15 @@ button {
 
 .app-view__top--center {
   text-align: center;
+}
+
+.app-view__top--result {
+  display: grid;
+  gap: 0;
+}
+
+.result-title {
+  margin: 0 0 18px;
 }
 
 .app-view__top--history {
@@ -963,6 +1007,7 @@ button {
   .panel,
   .quiz-card {
     height: calc(100dvh - 28px);
+    max-height: none;
     padding: 18px;
     border-radius: 24px;
   }

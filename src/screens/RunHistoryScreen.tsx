@@ -1,4 +1,5 @@
 import { Button } from '../components/Button';
+import { BrandWordmark } from '../components/BrandWordmark';
 import { RANKED_DIFFICULTY_PRESETS } from '../data/hangul';
 import { formatDuration } from '../game/quiz';
 import type { DifficultyId, SavedRun, ScoreboardsByDifficulty } from '../game/types';
@@ -17,7 +18,7 @@ export function RunHistoryScreen({ activeDifficulty, scoreboards, onChangeDiffic
     <main className="screen shell">
       <div className="panel app-view app-view--panel">
         <div className="app-view__top app-view__top--history">
-          <h1 className="run-history-title">Run History</h1>
+          <BrandWordmark className="brand-wordmark--subpage" />
 
           <section className="section-block section-block--first">
             <label className="select-row" htmlFor="history-difficulty-select">

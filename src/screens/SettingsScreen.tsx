@@ -1,4 +1,5 @@
 import { Button } from '../components/Button';
+import { BrandWordmark } from '../components/BrandWordmark';
 import { DIFFICULTY_PRESETS } from '../data/hangul';
 import type { AppSettings } from '../game/types';
 
@@ -16,7 +17,7 @@ export function SettingsScreen({ settings, onChange, onBack, onReset }: Settings
     <main className="screen shell">
       <div className="panel app-view app-view--panel">
         <div className="app-view__top app-view__top--settings">
-          <h1>Settings</h1>
+          <BrandWordmark className="brand-wordmark--subpage" />
         </div>
 
         <div className="app-view__middle app-view__middle--scrollable app-view__middle--settings">

@@ -1,4 +1,5 @@
-import { APP_NAME, getDifficultyPresetById } from '../data/hangul';
+import { getDifficultyPresetById } from '../data/hangul';
+import { BrandWordmark } from '../components/BrandWordmark';
 import type { AppSettings, ScoreboardsByDifficulty } from '../game/types';
 import { Button } from '../components/Button';
 
@@ -18,7 +19,7 @@ export function StartScreen({ settings, scoreboards, onStartGame, onOpenHistory,
     <main className="screen shell shell--hero">
       <div className="hero-card app-view app-view--hero">
         <div className="app-view__top app-view__top--center">
-          <h1>{APP_NAME}</h1>
+          <BrandWordmark />
         </div>
 
         <div className="app-view__middle app-view__middle--center">
