@@ -21,12 +21,7 @@ jobs:
       BASE_PATH: /hangul/
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: yarn
-          cache-dependency-path: yarn.lock
-      - run: corepack enable
+      - uses: threeal/setup-yarn-action@v2.0.0
       - run: yarn install --immutable
       - run: yarn build
       - uses: actions/upload-pages-artifact@v3
