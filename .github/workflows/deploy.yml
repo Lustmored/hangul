@@ -21,8 +21,12 @@ jobs:
       BASE_PATH: /hangul/
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
       - uses: threeal/setup-yarn-action@v2.0.0
       - run: yarn install --immutable
+      - run: yarn test
       - run: yarn build
       - uses: actions/upload-pages-artifact@v3
         with:
