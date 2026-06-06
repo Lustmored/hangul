@@ -644,6 +644,7 @@ button {
   font-size: clamp(0.95rem, 2.8vw, 1.1rem);
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+  min-width: 0;
 }
 
 .hud-time__label {
@@ -750,6 +751,7 @@ button {
 
 .answer-card--disabled {
   cursor: default;
+  pointer-events: none;
 }
 
 .answer-card--correct {
@@ -762,6 +764,12 @@ button {
   background: rgba(255, 104, 125, 0.16);
 }
 
+.quiz-action-area {
+  display: grid;
+  gap: 10px;
+  align-content: end;
+}
+
 .quiz-action-lane {
   min-height: 56px;
   display: flex;
@@ -770,6 +778,23 @@ button {
 
 .quiz-next-button {
   width: 100%;
+}
+
+.quiz-secondary-action {
+  display: flex;
+  justify-content: center;
+}
+
+.quiz-end-button {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.quiz-end-button:hover {
+  color: var(--accent-strong);
 }
 
 .question-progress {
@@ -989,6 +1014,12 @@ button {
   .answer-card--hangul.answer-card--long .answer-card__label,
   .answer-card--latin.answer-card--long .answer-card__label {
     font-size: clamp(1.5rem, 5.8vw, 2rem);
+  }
+
+  .quiz-end-button {
+    min-height: 42px;
+    padding-inline: 12px;
+    font-size: 0.9rem;
   }
 }
 

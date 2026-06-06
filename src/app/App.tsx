@@ -15,11 +15,44 @@ export function App() {
   const initialState = useMemo(() => createInitialAppState(loadSettings(), loadScoreboards()), []);
   const [state, dispatch] = useReducer(reducer, initialState);
   const sfxRef = useRef(createSfxController(initialState.settings.sfxVolume));
+  const stateRef = useRef(state);
+  const previousScreenRef = useRef(state.screen);
+  const overlayEntryActiveRef = useRef(false);
+  const navigatingHomeRef = useRef(false);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   useEffect(() => {
     saveSettings(state.settings);
     sfxRef.current.setVolume(state.settings.sfxVolume);
   }, [state.settings]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      navigatingHomeRef.current = false;
+
+      if (stateRef.current.screen !== 'start') {
+        overlayEntryActiveRef.current = false;
+        dispatch({ type: 'go-home' });
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    const previousScreen = previousScreenRef.current;
+
+    if (previousScreen === 'start' && state.screen !== 'start' && !overlayEntryActiveRef.current) {
+      window.history.pushState({ appScreen: 'overlay' }, '');
+      overlayEntryActiveRef.current = true;
+    }
+
+    previousScreenRef.current = state.screen;
+  }, [state.screen]);
 
   useEffect(() => {
     if (!state.animatedScore && !state.animatedDamage) {
@@ -74,6 +107,28 @@ export function App() {
     return () => window.clearInterval(interval);
   }, [state.screen, state.session]);
 
+  const finalizeRun = (session: QuizSession, endedIn: 'game-over' | 'full-clear') => {
+    const perfectClear = endedIn === 'full-clear' && session.mistakes === 0;
+    const run: SavedRun = {
+      id: crypto.randomUUID(),
+      score: session.score,
+      totalAnswerTimeMs: session.totalAnswerTimeMs,
+      difficultyId: state.settings.difficultyId,
+      endedIn,
+      perfectClear,
+      completedAt: new Date().toISOString()
+    };
+    const updatedBoards = saveRun(state.scoreboards, run);
+
+    dispatch({
+      type: 'finish-run',
+      screen: perfectClear ? 'perfectRun' : endedIn === 'full-clear' ? 'win' : 'gameOver',
+      session,
+      run,
+      scoreboards: updatedBoards
+    });
+  };
+
   const handleAnswer = (session: QuizSession | null, selectedOptionId: string | null) => {
     if (!session) {
       return;
@@ -106,24 +161,7 @@ export function App() {
     }
 
     if (state.session.terminalOutcome) {
-      const perfectClear = state.session.terminalOutcome === 'full-clear' && state.session.mistakes === 0;
-      const run: SavedRun = {
-        id: crypto.randomUUID(),
-        score: state.session.score,
-        totalAnswerTimeMs: state.session.totalAnswerTimeMs,
-        difficultyId: state.settings.difficultyId,
-        endedIn: state.session.terminalOutcome,
-        perfectClear,
-        completedAt: new Date().toISOString()
-      };
-      const updatedBoards = saveRun(state.scoreboards, run);
-      dispatch({
-        type: 'finish-run',
-        screen: perfectClear ? 'perfectRun' : state.session.terminalOutcome === 'full-clear' ? 'win' : 'gameOver',
-        session: state.session,
-        run,
-        scoreboards: updatedBoards
-      });
+      finalizeRun(state.session, state.session.terminalOutcome);
       return;
     }
 
@@ -142,6 +180,25 @@ export function App() {
   const handleResetData = () => {
     resetLocalData();
     dispatch({ type: 'reset-local-data', settings: DEFAULT_SETTINGS, scoreboards: loadScoreboards() });
+  };
+
+  const handleEndRun = () => {
+    if (!state.session) {
+      return;
+    }
+
+    sfxRef.current.play('gameover');
+    finalizeRun(state.session, 'game-over');
+  };
+
+  const navigateHome = () => {
+    if (state.screen !== 'start' && overlayEntryActiveRef.current) {
+      navigatingHomeRef.current = true;
+      window.history.back();
+      return;
+    }
+
+    dispatch({ type: 'go-home' });
   };
 
   return (
@@ -163,7 +220,7 @@ export function App() {
         <SettingsScreen
           settings={state.settings}
           onChange={(settings) => dispatch({ type: 'set-settings', settings })}
-          onBack={() => dispatch({ type: 'go-home' })}
+          onBack={navigateHome}
           onReset={() => dispatch({ type: 'open-reset-modal' })}
         />
       ) : null}
@@ -173,7 +230,7 @@ export function App() {
           activeDifficulty={state.historyDifficultyTab}
           scoreboards={state.scoreboards}
           onChangeDifficulty={(difficultyId) => dispatch({ type: 'set-history-tab', difficultyId })}
-          onBack={() => dispatch({ type: 'go-home' })}
+          onBack={navigateHome}
         />
       ) : null}
 
@@ -182,6 +239,7 @@ export function App() {
           session={state.session}
           animatedScore={state.animatedScore}
           animatedDamage={state.animatedDamage}
+          onEndRun={handleEndRun}
           onAnswer={(optionId) => {
             sfxRef.current.play('select');
             handleAnswer(state.session, optionId);
@@ -203,7 +261,7 @@ export function App() {
           }
           difficultyId={state.settings.difficultyId}
           onPlayAgain={handlePlayAgain}
-          onBackToHome={() => dispatch({ type: 'go-home' })}
+          onBackToHome={navigateHome}
         />
       ) : null}
 

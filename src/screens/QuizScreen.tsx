@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type MouseEvent } from 'react';
 import { AnswerGrid } from '../components/AnswerGrid';
 import { Button } from '../components/Button';
 import { QuizHud } from '../components/QuizHud';
@@ -8,12 +8,13 @@ interface QuizScreenProps {
   session: QuizSession;
   animatedScore: boolean;
   animatedDamage: boolean;
+  onEndRun: () => void;
   onAnswer: (optionId: string) => void;
   onTimeout: () => void;
   onNext: () => void;
 }
 
-export function QuizScreen({ session, animatedScore, animatedDamage, onAnswer, onTimeout: _onTimeout, onNext }: QuizScreenProps) {
+export function QuizScreen({ session, animatedScore, animatedDamage, onEndRun, onAnswer, onTimeout: _onTimeout, onNext }: QuizScreenProps) {
   const question = session.question;
   const result = session.lastResult;
   const [now, setNow] = useState(() => Date.now());
@@ -40,6 +41,14 @@ export function QuizScreen({ session, animatedScore, animatedDamage, onAnswer, o
     promptIsHangul ? 'prompt--hangul' : 'prompt--latin',
     promptLength <= 2 ? 'prompt--short' : promptLength <= 4 ? 'prompt--medium' : 'prompt--long'
   ].join(' ');
+  const handleEndRunClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onEndRun();
+  };
+  const handleNextClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onNext();
+  };
 
   return (
     <main className="screen shell shell--quiz" onClick={result ? onNext : undefined}>
@@ -75,16 +84,21 @@ export function QuizScreen({ session, animatedScore, animatedDamage, onAnswer, o
           </div>
         </div>
 
-        <div className="app-view__bottom" onClick={result ? (event) => event.stopPropagation() : undefined}>
-          <div className="quiz-action-lane">
-            {result ? (
-              <Button block className="quiz-next-button" onClick={onNext}>Next</Button>
-            ) : (
-              <QuestionProgressBar
-                questionKey={session.questionStartedAt}
-                timeLimitSeconds={question.timeLimitSeconds}
-              />
-            )}
+        <div className="app-view__bottom">
+          <div className="quiz-action-area">
+            <div className="quiz-action-lane">
+              {result ? (
+                <Button block className="quiz-next-button" onClick={handleNextClick}>Next</Button>
+              ) : (
+                <QuestionProgressBar
+                  questionKey={session.questionStartedAt}
+                  timeLimitSeconds={question.timeLimitSeconds}
+                />
+              )}
+            </div>
+            <div className="quiz-secondary-action">
+              <Button block className="quiz-end-button" tone="ghost" onClick={handleEndRunClick}>End run</Button>
+            </div>
           </div>
         </div>
       </div>
