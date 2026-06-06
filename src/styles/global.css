@@ -413,6 +413,28 @@ button {
   padding: 16px;
 }
 
+.option-card__label {
+  min-width: 0;
+}
+
+.option-card__meta {
+  margin-left: auto;
+  min-width: 0;
+  text-align: right;
+}
+
+.option-card__hint {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 400;
+}
+
+.difficulty-hearts {
+  color: var(--negative);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
 .option-card input {
   accent-color: var(--accent);
 }

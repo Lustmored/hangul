@@ -1,18 +1,18 @@
-import { APP_NAME, getTimerPresetById } from '../data/hangul';
-import type { AppSettings, ScoreboardsByTimer } from '../game/types';
+import { APP_NAME, getDifficultyPresetById } from '../data/hangul';
+import type { AppSettings, ScoreboardsByDifficulty } from '../game/types';
 import { Button } from '../components/Button';
 
 interface StartScreenProps {
   settings: AppSettings;
-  scoreboards: ScoreboardsByTimer;
+  scoreboards: ScoreboardsByDifficulty;
   onStartGame: () => void;
   onOpenHistory: () => void;
   onOpenSettings: () => void;
 }
 
 export function StartScreen({ settings, scoreboards, onStartGame, onOpenHistory, onOpenSettings }: StartScreenProps) {
-  const timer = getTimerPresetById(settings.timerPresetId);
-  const bestScore = scoreboards[settings.timerPresetId].bestScore;
+  const difficulty = getDifficultyPresetById(settings.difficultyId);
+  const bestScore = scoreboards[settings.difficultyId].bestScore;
 
   return (
     <main className="screen shell shell--hero">
@@ -24,12 +24,12 @@ export function StartScreen({ settings, scoreboards, onStartGame, onOpenHistory,
         <div className="app-view__middle app-view__middle--center">
           <div className="hero-stats">
             <div className="stat-card">
-              <span className="stat-card__label">Current Timer</span>
-              <strong>{timer.label}</strong>
+              <span className="stat-card__label">Current Difficulty</span>
+              <strong>{difficulty.label}</strong>
             </div>
             <div className="stat-card">
               <span className="stat-card__label">Best Score</span>
-              <strong>{bestScore}</strong>
+              <strong>{difficulty.trackScore ? bestScore : 'Not tracked'}</strong>
             </div>
           </div>
         </div>

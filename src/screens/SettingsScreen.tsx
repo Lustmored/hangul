@@ -1,5 +1,5 @@
 import { Button } from '../components/Button';
-import { TIMER_PRESETS } from '../data/hangul';
+import { DIFFICULTY_PRESETS } from '../data/hangul';
 import type { AppSettings } from '../game/types';
 
 interface SettingsScreenProps {
@@ -52,17 +52,39 @@ export function SettingsScreen({ settings, onChange, onBack, onReset }: Settings
           </section>
 
           <section className="section-block">
-            <div className="group-label">Timer preset</div>
+            <div className="group-label">Difficulty</div>
             <div className="option-list">
-              {TIMER_PRESETS.map((preset) => (
-                <label key={preset.id} className={`option-card ${settings.timerPresetId === preset.id ? 'option-card--selected' : ''}`}>
+              {DIFFICULTY_PRESETS.map((preset) => (
+                <label key={preset.id} className={`option-card ${settings.difficultyId === preset.id ? 'option-card--selected' : ''}`}>
                   <input
                     type="radio"
-                    name="timer-preset"
-                    checked={settings.timerPresetId === preset.id}
-                    onChange={() => onChange({ ...settings, timerPresetId: preset.id })}
+                    name="difficulty"
+                    checked={settings.difficultyId === preset.id}
+                    onChange={() => onChange({ ...settings, difficultyId: preset.id })}
                   />
-                  <span>{preset.label}</span>
+                  <span className="option-card__label">{preset.label}</span>
+                  <span className="option-card__meta">
+                    <small className="option-card__hint">
+                      {preset.seconds === null || preset.lives === null ? (
+                        <>
+                          No timer ·{' '}
+                          <span className="difficulty-hearts" aria-label="Infinite lives">
+                            ∞♥
+                          </span>{' '}
+                          · no high scores
+                        </>
+                      ) : (
+                        <>
+                          {preset.seconds}s ·{' '}
+                          <span className="difficulty-hearts" aria-label={`${preset.lives} lives`}>
+                            {Array.from({ length: preset.lives }, (_, index) => (
+                              <span key={index} aria-hidden="true">♥</span>
+                            ))}
+                          </span>
+                        </>
+                      )}
+                    </small>
+                  </span>
                 </label>
               ))}
             </div>

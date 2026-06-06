@@ -6,20 +6,20 @@ vi.spyOn(Date, 'now').mockImplementation(() => 10_000);
 
 describe('quiz generation', () => {
   it('creates a first question for a new session', () => {
-    const session = createInitialSession('relaxed');
+    const session = createInitialSession('easy');
 
     expect(session.question).not.toBeNull();
     expect(session.question?.options).toHaveLength(4);
     expect(session.question?.timeLimitSeconds).toBe(10);
     expect(session.question?.remainingSeconds).toBe(10);
-    expect(session.lives).toBe(3);
+    expect(session.lives).toBe(5);
   });
 
   it('does not reuse the consumed prompt item in the next question', () => {
-    const first = createInitialSession('relaxed');
+    const first = createInitialSession('easy');
     const promptId = first.question!.promptItem.id;
     const afterAnswer = resolveAnswer(first, first.question!.correctOptionId).nextSession;
-    const second = advanceAfterResult(afterAnswer, 'relaxed');
+    const second = advanceAfterResult(afterAnswer, 'easy');
 
     expect(second.question?.promptItem.id).not.toBe(promptId);
   });
@@ -29,12 +29,21 @@ describe('quiz generation', () => {
   });
 
   it('deducts a life on timeout without increasing the score', () => {
-    const session = createInitialSession('quick');
+    const session = createInitialSession('hard');
     const resolved = resolveAnswer(session, null).nextSession;
 
-    expect(resolved.lives).toBe(2);
+    expect(resolved.lives).toBe(1);
     expect(resolved.score).toBe(0);
     expect(resolved.lastResult?.outcome).toBe('timeout');
+  });
+
+  it('does not deduct lives in training mode', () => {
+    const session = createInitialSession('training');
+    const resolved = resolveAnswer(session, null).nextSession;
+
+    expect(resolved.lives).toBeNull();
+    expect(resolved.mistakes).toBe(1);
+    expect(resolved.score).toBe(0);
   });
 
   it('can still create a question when the preferred bucket is exhausted', () => {

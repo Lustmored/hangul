@@ -1,4 +1,4 @@
-import { HANGUL_ITEMS, getTimerPresetById, type QuestionMode, type QuizItem, type TimerPresetId } from '../data/hangul';
+import { HANGUL_ITEMS, getDifficultyPresetById, type DifficultyId, type QuestionMode, type QuizItem } from '../data/hangul';
 import type { QuestionOption, QuizQuestion, QuestionResult, QuizSession } from './types';
 
 const BUCKET_WEIGHTS: Array<{ minScore: number; weights: Record<number, number> }> = [
@@ -9,12 +9,17 @@ const BUCKET_WEIGHTS: Array<{ minScore: number; weights: Record<number, number> 
   { minScore: 24, weights: { 3: 2, 4: 3, 5: 5, 6: 5, 7: 4, 8: 4 } }
 ];
 
-export function createInitialSession(timerPresetId: TimerPresetId): QuizSession {
+export function createInitialSession(difficultyId: DifficultyId): QuizSession {
+  const difficulty = getDifficultyPresetById(difficultyId);
+
   return {
-    lives: 3,
+    lives: difficulty.lives,
+    maxLives: difficulty.lives,
+    mistakes: 0,
+    terminalOutcome: null,
     score: 0,
     usedItemIds: [],
-    question: createNextQuestion([], 0, timerPresetId),
+    question: createNextQuestion([], 0, difficultyId),
     questionStartedAt: Date.now(),
     totalAnswerTimeMs: 0,
     lastResult: null,
@@ -22,7 +27,7 @@ export function createInitialSession(timerPresetId: TimerPresetId): QuizSession 
   };
 }
 
-export function createNextQuestion(usedItemIds: string[], score: number, timerPresetId: TimerPresetId): QuizQuestion | null {
+export function createNextQuestion(usedItemIds: string[], score: number, difficultyId: DifficultyId): QuizQuestion | null {
   const mode: QuestionMode = Math.random() < 0.5 ? 'hangul-to-latin' : 'latin-to-hangul';
   const nextBucket = pickBucket(score);
   const unusedItems = HANGUL_ITEMS.filter((item) => !usedItemIds.includes(item.id));
@@ -35,7 +40,7 @@ export function createNextQuestion(usedItemIds: string[], score: number, timerPr
 
   const promptItem = pickRandom(fallbackItems);
   const options = buildOptions(promptItem, mode);
-  const timerPreset = getTimerPresetById(timerPresetId);
+  const difficulty = getDifficultyPresetById(difficultyId);
 
   return {
     mode,
@@ -43,8 +48,8 @@ export function createNextQuestion(usedItemIds: string[], score: number, timerPr
     promptItem,
     options,
     correctOptionId: promptItem.id,
-    timeLimitSeconds: timerPreset.seconds,
-    remainingSeconds: timerPreset.seconds
+    timeLimitSeconds: difficulty.seconds,
+    remainingSeconds: difficulty.seconds
   };
 }
 
@@ -58,7 +63,7 @@ export function resolveAnswer(session: QuizSession, selectedOptionId: string | n
   const correct = selectedOptionId === session.question.correctOptionId;
   const timeout = selectedOptionId === null;
   const outcome: QuestionResult['outcome'] = timeout ? 'timeout' : correct ? 'correct' : 'wrong';
-  const lives = correct ? session.lives : session.lives - 1;
+  const lives = correct || session.lives === null ? session.lives : session.lives - 1;
   const score = correct ? session.score + 1 : session.score;
 
   const lastResult: QuestionResult = {
@@ -72,6 +77,8 @@ export function resolveAnswer(session: QuizSession, selectedOptionId: string | n
   const nextSession: QuizSession = {
     ...session,
     lives,
+    mistakes: correct ? session.mistakes : session.mistakes + 1,
+    terminalOutcome: null,
     score,
     usedItemIds,
     totalAnswerTimeMs: session.totalAnswerTimeMs + elapsedMs,
@@ -80,25 +87,26 @@ export function resolveAnswer(session: QuizSession, selectedOptionId: string | n
     questionStartedAt: null
   };
 
-  if (lives <= 0) {
-    return { nextSession, finished: 'game-over' };
+  if (lives !== null && lives <= 0) {
+    return { nextSession: { ...nextSession, terminalOutcome: 'game-over' }, finished: 'game-over' };
   }
 
   if (usedItemIds.length >= HANGUL_ITEMS.length) {
-    return { nextSession, finished: 'full-clear' };
+    return { nextSession: { ...nextSession, terminalOutcome: 'full-clear' }, finished: 'full-clear' };
   }
 
   return { nextSession, finished: null };
 }
 
-export function advanceAfterResult(session: QuizSession, timerPresetId: TimerPresetId): QuizSession {
-  const nextQuestion = createNextQuestion(session.usedItemIds, session.score, timerPresetId);
+export function advanceAfterResult(session: QuizSession, difficultyId: DifficultyId): QuizSession {
+  const nextQuestion = createNextQuestion(session.usedItemIds, session.score, difficultyId);
 
   return {
     ...session,
     question: nextQuestion,
     questionStartedAt: nextQuestion ? Date.now() : null,
     lastResult: null,
+    terminalOutcome: null,
     timerExpired: false
   };
 }

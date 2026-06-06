@@ -1,10 +1,12 @@
 export type QuestionMode = 'hangul-to-latin' | 'latin-to-hangul';
-export type TimerPresetId = 'blitz' | 'quick' | 'normal' | 'relaxed' | 'none';
+export type DifficultyId = 'training' | 'easy' | 'normal' | 'hard' | 'asian';
 
-export interface TimerPreset {
-  id: TimerPresetId;
+export interface DifficultyPreset {
+  id: DifficultyId;
   label: string;
   seconds: number | null;
+  lives: number | null;
+  trackScore: boolean;
 }
 
 export interface QuizItem {
@@ -61,13 +63,15 @@ interface FinalDef {
 
 export const APP_NAME = 'Hangul Rush';
 
-export const TIMER_PRESETS: TimerPreset[] = [
-  { id: 'blitz', label: 'Blitz (3s)', seconds: 3 },
-  { id: 'quick', label: 'Quick (5s)', seconds: 5 },
-  { id: 'normal', label: 'Normal (7s)', seconds: 7 },
-  { id: 'relaxed', label: 'Relaxed (10s)', seconds: 10 },
-  { id: 'none', label: 'No Timer', seconds: null }
+export const DIFFICULTY_PRESETS: DifficultyPreset[] = [
+  { id: 'training', label: 'Training', seconds: null, lives: null, trackScore: false },
+  { id: 'easy', label: 'Easy', seconds: 10, lives: 5, trackScore: true },
+  { id: 'normal', label: 'Normal', seconds: 7, lives: 3, trackScore: true },
+  { id: 'hard', label: 'Hard', seconds: 5, lives: 2, trackScore: true },
+  { id: 'asian', label: 'Asian', seconds: 3, lives: 1, trackScore: true }
 ];
+
+export const RANKED_DIFFICULTY_PRESETS = DIFFICULTY_PRESETS.filter((preset) => preset.trackScore);
 
 const ONSETS: OnsetDef[] = [
   { glyph: 'ㄱ', romanization: 'g', key: 'g', simple: true, confusable: ['k', 'kk'], family: 'velar-stop' },
@@ -154,8 +158,8 @@ const COMPLEX_FINAL_KEYS = new Set(['gs', 'nj', 'nh', 'lg', 'lm', 'lb', 'ls', 'l
 
 export const HANGUL_ITEMS: QuizItem[] = createHangulItems();
 
-export function getTimerPresetById(id: TimerPresetId): TimerPreset {
-  return TIMER_PRESETS.find((preset) => preset.id === id) ?? TIMER_PRESETS[2]!;
+export function getDifficultyPresetById(id: DifficultyId): DifficultyPreset {
+  return DIFFICULTY_PRESETS.find((preset) => preset.id === id) ?? DIFFICULTY_PRESETS[2]!;
 }
 
 function createHangulItems(): QuizItem[] {

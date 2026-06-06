@@ -1,5 +1,5 @@
-import { TIMER_PRESETS, type TimerPresetId } from '../data/hangul';
-import type { AppSettings, SavedRun, Scoreboard, ScoreboardsByTimer } from '../game/types';
+import { DIFFICULTY_PRESETS, RANKED_DIFFICULTY_PRESETS, type DifficultyId } from '../data/hangul';
+import type { AppSettings, SavedRun, Scoreboard, ScoreboardsByDifficulty } from '../game/types';
 
 const SETTINGS_KEY = 'hangul-rush:settings';
 const RUN_HISTORY_KEY = 'hangul-rush:run-history';
@@ -9,7 +9,7 @@ const DEFAULT_SFX_VOLUME = 85;
 
 export const DEFAULT_SETTINGS: AppSettings = {
   sfxVolume: DEFAULT_SFX_VOLUME,
-  timerPresetId: 'normal'
+  difficultyId: 'normal'
 };
 
 export function loadSettings(): AppSettings {
@@ -20,7 +20,8 @@ export function loadSettings(): AppSettings {
 
   try {
     const parsed = JSON.parse(raw) as Partial<AppSettings & { soundEnabled?: boolean }>;
-    const validTimer = TIMER_PRESETS.some((preset) => preset.id === parsed.timerPresetId);
+    const parsedDifficultyId = typeof parsed.difficultyId === 'string' ? parsed.difficultyId : null;
+    const validDifficulty = DIFFICULTY_PRESETS.some((preset) => preset.id === parsedDifficultyId);
     const parsedVolume =
       typeof parsed.sfxVolume === 'number'
         ? parsed.sfxVolume
@@ -30,7 +31,7 @@ export function loadSettings(): AppSettings {
 
     return {
       sfxVolume: clampVolume(parsedVolume),
-      timerPresetId: validTimer ? (parsed.timerPresetId as TimerPresetId) : DEFAULT_SETTINGS.timerPresetId
+      difficultyId: validDifficulty ? (parsedDifficultyId as DifficultyId) : DEFAULT_SETTINGS.difficultyId
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -47,18 +48,18 @@ export function saveSettings(settings: AppSettings): void {
   );
 }
 
-export function loadScoreboards(): ScoreboardsByTimer {
+export function loadScoreboards(): ScoreboardsByDifficulty {
   const raw = localStorage.getItem(RUN_HISTORY_KEY);
-  const seed = Object.fromEntries(TIMER_PRESETS.map((preset) => [preset.id, defaultScoreboard()])) as ScoreboardsByTimer;
+  const seed = Object.fromEntries(DIFFICULTY_PRESETS.map((preset) => [preset.id, defaultScoreboard()])) as ScoreboardsByDifficulty;
 
   if (!raw) {
     return seed;
   }
 
   try {
-    const parsed = JSON.parse(raw) as Partial<ScoreboardsByTimer>;
+    const parsed = JSON.parse(raw) as Record<string, Partial<Scoreboard> | undefined>;
 
-    for (const preset of TIMER_PRESETS) {
+    for (const preset of DIFFICULTY_PRESETS) {
       const source = parsed[preset.id];
       if (!source) {
         continue;
@@ -76,11 +77,16 @@ export function loadScoreboards(): ScoreboardsByTimer {
   }
 }
 
-export function saveRun(scoreboards: ScoreboardsByTimer, run: SavedRun): ScoreboardsByTimer {
-  const existing = scoreboards[run.timerPresetId] ?? defaultScoreboard();
-  const updated: ScoreboardsByTimer = {
+export function saveRun(scoreboards: ScoreboardsByDifficulty, run: SavedRun): ScoreboardsByDifficulty {
+  const preset = DIFFICULTY_PRESETS.find((candidate) => candidate.id === run.difficultyId);
+  if (!preset?.trackScore) {
+    return scoreboards;
+  }
+
+  const existing = scoreboards[run.difficultyId] ?? defaultScoreboard();
+  const updated: ScoreboardsByDifficulty = {
     ...scoreboards,
-    [run.timerPresetId]: {
+    [run.difficultyId]: {
       bestScore: Math.max(existing.bestScore, run.score),
       recentRuns: [run, ...existing.recentRuns]
     }
@@ -88,6 +94,10 @@ export function saveRun(scoreboards: ScoreboardsByTimer, run: SavedRun): Scorebo
 
   localStorage.setItem(RUN_HISTORY_KEY, JSON.stringify(updated));
   return updated;
+}
+
+export function getDefaultHistoryDifficultyId(preferred: DifficultyId): DifficultyId {
+  return RANKED_DIFFICULTY_PRESETS.some((preset) => preset.id === preferred) ? preferred : DEFAULT_SETTINGS.difficultyId;
 }
 
 export function resetLocalData(): void {

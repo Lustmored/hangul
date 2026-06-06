@@ -47,6 +47,7 @@ export function QuizScreen({ session, animatedScore, animatedDamage, onAnswer, o
         <div className="app-view__top">
           <QuizHud
             lives={session.lives}
+            maxLives={session.maxLives}
             score={session.score}
             elapsedMs={liveElapsedMs}
             animatedScore={animatedScore}

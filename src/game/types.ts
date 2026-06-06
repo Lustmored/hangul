@@ -1,18 +1,18 @@
-import type { QuestionMode, QuizItem, TimerPresetId } from '../data/hangul';
+import type { DifficultyId, QuestionMode, QuizItem } from '../data/hangul';
 
 export type AppScreen = 'start' | 'settings' | 'history' | 'quiz' | 'gameOver' | 'win' | 'perfectRun';
-export type { TimerPresetId };
+export type { DifficultyId };
 
 export interface AppSettings {
   sfxVolume: number;
-  timerPresetId: TimerPresetId;
+  difficultyId: DifficultyId;
 }
 
 export interface SavedRun {
   id: string;
   score: number;
   totalAnswerTimeMs: number;
-  timerPresetId: TimerPresetId;
+  difficultyId: DifficultyId;
   endedIn: 'game-over' | 'full-clear';
   perfectClear: boolean;
   completedAt: string;
@@ -35,7 +35,10 @@ export interface QuizQuestion {
 }
 
 export interface QuizSession {
-  lives: number;
+  lives: number | null;
+  maxLives: number | null;
+  mistakes: number;
+  terminalOutcome: 'game-over' | 'full-clear' | null;
   score: number;
   usedItemIds: string[];
   question: QuizQuestion | null;
@@ -58,4 +61,4 @@ export interface Scoreboard {
   recentRuns: SavedRun[];
 }
 
-export type ScoreboardsByTimer = Record<TimerPresetId, Scoreboard>;
+export type ScoreboardsByDifficulty = Record<DifficultyId, Scoreboard>;

@@ -91,38 +91,13 @@ export function App() {
       }
     }
 
-    if (!finished) {
-      dispatch({ type: 'set-session', session: nextSession });
-      return;
-    }
-
-    const perfectClear = finished === 'full-clear' && nextSession.lives === 3;
-    const run: SavedRun = {
-      id: crypto.randomUUID(),
-      score: nextSession.score,
-      totalAnswerTimeMs: nextSession.totalAnswerTimeMs,
-      timerPresetId: state.settings.timerPresetId,
-      endedIn: finished,
-      perfectClear,
-      completedAt: new Date().toISOString()
-    };
-
-    if (perfectClear) {
-      sfxRef.current.play('perfect');
-    } else if (finished === 'full-clear') {
-      sfxRef.current.play('win');
-    } else {
+    if (finished === 'game-over') {
       sfxRef.current.play('gameover');
+    } else if (finished === 'full-clear') {
+      sfxRef.current.play(nextSession.mistakes === 0 ? 'perfect' : 'win');
     }
 
-    const updatedBoards = saveRun(state.scoreboards, run);
-    dispatch({
-      type: 'finish-run',
-      screen: perfectClear ? 'perfectRun' : finished === 'full-clear' ? 'win' : 'gameOver',
-      session: nextSession,
-      run,
-      scoreboards: updatedBoards
-    });
+    dispatch({ type: 'set-session', session: nextSession });
   };
 
   const handleNextQuestion = () => {
@@ -130,16 +105,38 @@ export function App() {
       return;
     }
 
+    if (state.session.terminalOutcome) {
+      const perfectClear = state.session.terminalOutcome === 'full-clear' && state.session.mistakes === 0;
+      const run: SavedRun = {
+        id: crypto.randomUUID(),
+        score: state.session.score,
+        totalAnswerTimeMs: state.session.totalAnswerTimeMs,
+        difficultyId: state.settings.difficultyId,
+        endedIn: state.session.terminalOutcome,
+        perfectClear,
+        completedAt: new Date().toISOString()
+      };
+      const updatedBoards = saveRun(state.scoreboards, run);
+      dispatch({
+        type: 'finish-run',
+        screen: perfectClear ? 'perfectRun' : state.session.terminalOutcome === 'full-clear' ? 'win' : 'gameOver',
+        session: state.session,
+        run,
+        scoreboards: updatedBoards
+      });
+      return;
+    }
+
     sfxRef.current.play('next');
     dispatch({
       type: 'set-session',
-      session: advanceAfterResult(state.session, state.settings.timerPresetId)
+      session: advanceAfterResult(state.session, state.settings.difficultyId)
     });
   };
 
   const handlePlayAgain = () => {
     sfxRef.current.play('start');
-    dispatch({ type: 'set-session', session: createInitialSession(state.settings.timerPresetId) });
+    dispatch({ type: 'set-session', session: createInitialSession(state.settings.difficultyId) });
   };
 
   const handleResetData = () => {
@@ -173,9 +170,9 @@ export function App() {
 
       {state.screen === 'history' ? (
         <RunHistoryScreen
-          activeTimer={state.historyTimerTab}
+          activeDifficulty={state.historyDifficultyTab}
           scoreboards={state.scoreboards}
-          onChangeTimer={(timerPresetId) => dispatch({ type: 'set-history-tab', timerPresetId })}
+          onChangeDifficulty={(difficultyId) => dispatch({ type: 'set-history-tab', difficultyId })}
           onBack={() => dispatch({ type: 'go-home' })}
         />
       ) : null}
@@ -199,8 +196,12 @@ export function App() {
           variant={state.screen}
           score={state.session.score}
           elapsedMs={state.session.totalAnswerTimeMs}
-          livesLost={3 - state.session.lives}
-          timerPresetId={state.settings.timerPresetId}
+          livesLost={
+            state.session.maxLives === null || state.session.lives === null
+              ? null
+              : state.session.maxLives - state.session.lives
+          }
+          difficultyId={state.settings.difficultyId}
           onPlayAgain={handlePlayAgain}
           onBackToHome={() => dispatch({ type: 'go-home' })}
         />

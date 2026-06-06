@@ -1,11 +1,12 @@
-import type { AppScreen, AppSettings, QuizSession, SavedRun, ScoreboardsByTimer, TimerPresetId } from '../game/types';
+import type { AppScreen, AppSettings, DifficultyId, QuizSession, SavedRun, ScoreboardsByDifficulty } from '../game/types';
 import { createInitialSession } from '../game/quiz';
+import { getDefaultHistoryDifficultyId } from '../storage/localStorage';
 
 export interface AppState {
   screen: AppScreen;
   settings: AppSettings;
-  scoreboards: ScoreboardsByTimer;
-  historyTimerTab: TimerPresetId;
+  scoreboards: ScoreboardsByDifficulty;
+  historyDifficultyTab: DifficultyId;
   session: QuizSession | null;
   lastCompletedRun: SavedRun | null;
   resetModalOpen: boolean;
@@ -19,20 +20,20 @@ export type Action =
   | { type: 'go-home' }
   | { type: 'start-game' }
   | { type: 'set-settings'; settings: AppSettings }
-  | { type: 'set-history-tab'; timerPresetId: TimerPresetId }
+  | { type: 'set-history-tab'; difficultyId: DifficultyId }
   | { type: 'set-session'; session: QuizSession }
-  | { type: 'finish-run'; screen: AppScreen; session: QuizSession; run: SavedRun; scoreboards: ScoreboardsByTimer }
+  | { type: 'finish-run'; screen: AppScreen; session: QuizSession; run: SavedRun; scoreboards: ScoreboardsByDifficulty }
   | { type: 'open-reset-modal' }
   | { type: 'close-reset-modal' }
-  | { type: 'reset-local-data'; settings: AppSettings; scoreboards: ScoreboardsByTimer }
+  | { type: 'reset-local-data'; settings: AppSettings; scoreboards: ScoreboardsByDifficulty }
   | { type: 'clear-animations' };
 
-export function createInitialAppState(settings: AppSettings, scoreboards: ScoreboardsByTimer): AppState {
+export function createInitialAppState(settings: AppSettings, scoreboards: ScoreboardsByDifficulty): AppState {
   return {
     screen: 'start',
     settings,
     scoreboards,
-    historyTimerTab: settings.timerPresetId,
+    historyDifficultyTab: getDefaultHistoryDifficultyId(settings.difficultyId),
     session: null,
     lastCompletedRun: null,
     resetModalOpen: false,
@@ -53,22 +54,26 @@ export function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         screen: 'quiz',
-        session: createInitialSession(state.settings.timerPresetId),
+        session: createInitialSession(state.settings.difficultyId),
         animatedDamage: false,
         animatedScore: false
       };
     case 'set-settings':
-      return { ...state, settings: action.settings, historyTimerTab: action.settings.timerPresetId };
+      return { ...state, settings: action.settings, historyDifficultyTab: getDefaultHistoryDifficultyId(action.settings.difficultyId) };
     case 'set-history-tab':
-      return { ...state, historyTimerTab: action.timerPresetId };
+      return { ...state, historyDifficultyTab: action.difficultyId };
     case 'set-session': {
       const previous = state.session;
+      const animatedDamage =
+        typeof previous?.lives === 'number' &&
+        typeof action.session.lives === 'number' &&
+        previous.lives > action.session.lives;
       return {
         ...state,
         screen: 'quiz',
         session: action.session,
         animatedScore: (previous?.score ?? 0) < action.session.score,
-        animatedDamage: (previous?.lives ?? 3) > action.session.lives
+        animatedDamage
       };
     }
     case 'finish-run':
@@ -90,7 +95,7 @@ export function reducer(state: AppState, action: Action): AppState {
         ...state,
         settings: action.settings,
         scoreboards: action.scoreboards,
-        historyTimerTab: action.settings.timerPresetId,
+        historyDifficultyTab: getDefaultHistoryDifficultyId(action.settings.difficultyId),
         resetModalOpen: false
       };
     case 'clear-animations':

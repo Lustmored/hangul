@@ -1,22 +1,22 @@
 import { Button } from '../components/Button';
-import { getTimerPresetById } from '../data/hangul';
+import { getDifficultyPresetById } from '../data/hangul';
 import { formatDuration } from '../game/quiz';
-import type { TimerPresetId } from '../data/hangul';
+import type { DifficultyId } from '../data/hangul';
 
 interface EndScreenProps {
   variant: 'gameOver' | 'win' | 'perfectRun';
   score: number;
   elapsedMs: number;
-  livesLost: number;
-  timerPresetId: TimerPresetId;
+  livesLost: number | null;
+  difficultyId: DifficultyId;
   onPlayAgain: () => void;
   onBackToHome: () => void;
 }
 
-export function EndScreen({ variant, score, elapsedMs, livesLost, timerPresetId, onPlayAgain, onBackToHome }: EndScreenProps) {
+export function EndScreen({ variant, score, elapsedMs, livesLost, difficultyId, onPlayAgain, onBackToHome }: EndScreenProps) {
   const title = variant === 'perfectRun' ? 'Perfect Run' : variant === 'win' ? 'You Win' : 'Game Over';
-  const timer = getTimerPresetById(timerPresetId);
-  const showLivesLost = variant !== 'gameOver';
+  const difficulty = getDifficultyPresetById(difficultyId);
+  const showLivesLost = variant !== 'gameOver' && livesLost !== null;
 
   return (
     <main className="screen shell shell--hero">
@@ -42,12 +42,12 @@ export function EndScreen({ variant, score, elapsedMs, livesLost, timerPresetId,
               </div>
             ) : null}
             <div className="stat-card">
-              <span className="stat-card__label">Timer</span>
-              <strong>{timer.label}</strong>
+              <span className="stat-card__label">Difficulty</span>
+              <strong>{difficulty.label}</strong>
             </div>
           </div>
-          {timerPresetId !== 'blitz' && variant !== 'gameOver' ? (
-            <p className="muted">Try a lower timer for a better challenge.</p>
+          {difficultyId !== 'asian' && difficultyId !== 'training' && variant !== 'gameOver' ? (
+            <p className="muted">Try a harder difficulty for a better challenge.</p>
           ) : null}
         </div>
 

@@ -1,17 +1,17 @@
 import { Button } from '../components/Button';
-import { TIMER_PRESETS } from '../data/hangul';
+import { RANKED_DIFFICULTY_PRESETS } from '../data/hangul';
 import { formatDuration } from '../game/quiz';
-import type { SavedRun, ScoreboardsByTimer, TimerPresetId } from '../game/types';
+import type { DifficultyId, SavedRun, ScoreboardsByDifficulty } from '../game/types';
 
 interface RunHistoryScreenProps {
-  activeTimer: TimerPresetId;
-  scoreboards: ScoreboardsByTimer;
-  onChangeTimer: (timer: TimerPresetId) => void;
+  activeDifficulty: DifficultyId;
+  scoreboards: ScoreboardsByDifficulty;
+  onChangeDifficulty: (difficulty: DifficultyId) => void;
   onBack: () => void;
 }
 
-export function RunHistoryScreen({ activeTimer, scoreboards, onChangeTimer, onBack }: RunHistoryScreenProps) {
-  const board = scoreboards[activeTimer];
+export function RunHistoryScreen({ activeDifficulty, scoreboards, onChangeDifficulty, onBack }: RunHistoryScreenProps) {
+  const board = scoreboards[activeDifficulty];
 
   return (
     <main className="screen shell">
@@ -20,16 +20,16 @@ export function RunHistoryScreen({ activeTimer, scoreboards, onChangeTimer, onBa
           <h1 className="run-history-title">Run History</h1>
 
           <section className="section-block section-block--first">
-            <label className="select-row" htmlFor="history-timer-select">
-              <span className="select-row__label">Timer preset</span>
+            <label className="select-row" htmlFor="history-difficulty-select">
+              <span className="select-row__label">Difficulty</span>
               <div className="select-row__control">
                 <select
-                  id="history-timer-select"
+                  id="history-difficulty-select"
                   className="select-control"
-                  value={activeTimer}
-                  onChange={(event) => onChangeTimer(event.target.value as TimerPresetId)}
+                  value={activeDifficulty}
+                  onChange={(event) => onChangeDifficulty(event.target.value as DifficultyId)}
                 >
-                  {TIMER_PRESETS.map((preset) => (
+                  {RANKED_DIFFICULTY_PRESETS.map((preset) => (
                     <option key={preset.id} value={preset.id}>
                       {preset.label}
                     </option>
@@ -47,7 +47,7 @@ export function RunHistoryScreen({ activeTimer, scoreboards, onChangeTimer, onBa
 
         <div className="app-view__middle app-view__middle--history">
           {board.recentRuns.length === 0 ? (
-            <div className="empty-state">No runs saved yet for this timer.</div>
+            <div className="empty-state">No ranked runs saved yet for this difficulty.</div>
           ) : (
             <div className="history-table-wrap">
               <table className="history-table">
