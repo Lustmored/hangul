@@ -1,4 +1,4 @@
-import { ROMANIZATION_PRESETS, romanizeSyllable, type RomanizationMode, type RomanizationPreset } from '../romanization';
+import { ROMANIZATION_PRESETS, romanize, type RomanizationMode, type RomanizationPreset } from '../romanization';
 export { ROMANIZATION_PRESETS };
 export type { RomanizationMode, RomanizationPreset } from '../romanization';
 
@@ -235,8 +235,8 @@ function createSyllableItem(
   glyph: string
 ): QuizItem {
   const romanizations = {
-    spelling: romanizeSyllable({ onsetKey: onset.key, vowelKey: vowel.key, finalKey: final.key }, 'spelling'),
-    pronunciation: romanizeSyllable({ onsetKey: onset.key, vowelKey: vowel.key, finalKey: final.key }, 'pronunciation')
+    spelling: romanize({ onsetKey: onset.key, vowelKey: vowel.key, finalKey: final.key }, 'spelling'),
+    pronunciation: romanize({ onsetKey: onset.key, vowelKey: vowel.key, finalKey: final.key }, 'pronunciation')
   } satisfies Record<RomanizationMode, string>;
   const hasFinal = finalIndex !== 0;
   const isHardOnset = !onset.simple;

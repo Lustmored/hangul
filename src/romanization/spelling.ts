@@ -1,4 +1,5 @@
 import type { SyllableRomanizationParts } from './types';
+import { parseHangulSyllables } from './hangul';
 
 const ONSET_SPELLING: Record<string, string> = {
   g: 'g',
@@ -79,4 +80,20 @@ const FINAL_SPELLING: Record<string, string> = {
 
 export function romanizeSpellingSyllable({ onsetKey, vowelKey, finalKey }: SyllableRomanizationParts): string {
   return `${ONSET_SPELLING[onsetKey] ?? ''}${VOWEL_SPELLING[vowelKey] ?? ''}${FINAL_SPELLING[finalKey] ?? ''}`;
+}
+
+export function romanizeSpellingWord(text: string): string {
+  const segments = text.split(/(\s+)/);
+  return segments.map((segment) => {
+    if (/\s+/.test(segment)) {
+      return segment;
+    }
+
+    const syllables = parseHangulSyllables(segment);
+    if (syllables.length === 0) {
+      return segment;
+    }
+
+    return syllables.map(romanizeSpellingSyllable).join('');
+  }).join('');
 }
