@@ -19,6 +19,8 @@ export function App() {
   const previousScreenRef = useRef(state.screen);
   const overlayEntryActiveRef = useRef(false);
   const navigatingHomeRef = useRef(false);
+  const countdownQuestionKeyRef = useRef<string | null>(null);
+  const lastCountdownSecondRef = useRef<number | null>(null);
 
   useEffect(() => {
     stateRef.current = state;
@@ -71,13 +73,29 @@ export function App() {
 
     const timeLimitSeconds = session.question.timeLimitSeconds;
     if (timeLimitSeconds === null || session.lastResult) {
+      countdownQuestionKeyRef.current = null;
+      lastCountdownSecondRef.current = null;
       return undefined;
+    }
+
+    const questionKey = `${session.question.promptItem.id}:${session.questionStartedAt ?? 'none'}`;
+    if (countdownQuestionKeyRef.current !== questionKey) {
+      countdownQuestionKeyRef.current = questionKey;
+      lastCountdownSecondRef.current = null;
     }
 
     const interval = window.setInterval(() => {
       const currentSession = state.session;
       if (!currentSession?.question || currentSession.lastResult || currentSession.questionStartedAt === null) {
+        countdownQuestionKeyRef.current = null;
+        lastCountdownSecondRef.current = null;
         return;
+      }
+
+      const currentQuestionKey = `${currentSession.question.promptItem.id}:${currentSession.questionStartedAt}`;
+      if (countdownQuestionKeyRef.current !== currentQuestionKey) {
+        countdownQuestionKeyRef.current = currentQuestionKey;
+        lastCountdownSecondRef.current = null;
       }
 
       const secondsLeft = getRemainingSeconds(
@@ -85,6 +103,11 @@ export function App() {
         currentSession.questionStartedAt,
         Date.now()
       );
+
+      if (secondsLeft !== null && secondsLeft > 0 && secondsLeft <= 3 && lastCountdownSecondRef.current !== secondsLeft) {
+        lastCountdownSecondRef.current = secondsLeft;
+        sfxRef.current.play('countdown');
+      }
 
       if (secondsLeft !== currentSession.question.remainingSeconds) {
         dispatch({
@@ -100,6 +123,8 @@ export function App() {
       }
 
       if (secondsLeft !== null && secondsLeft <= 0) {
+        countdownQuestionKeyRef.current = null;
+        lastCountdownSecondRef.current = null;
         handleAnswer(currentSession, null);
       }
     }, 250);

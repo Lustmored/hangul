@@ -4,6 +4,7 @@ export type SfxEvent =
   | 'correct'
   | 'wrong'
   | 'timeout'
+  | 'countdown'
   | 'next'
   | 'win'
   | 'perfect'
@@ -62,6 +63,12 @@ export function createSfxController(initialVolume: number): SfxController {
           ['square', 280, 0.05, 0.03],
           ['square', 220, 0.06, 0.035],
           ['square', 180, 0.08, 0.04]
+        ]);
+        break;
+      case 'countdown':
+        sequence(context, now, volumeMultiplier, [
+          ['square', 980, 0.035, 0.028],
+          ['triangle', 1180, 0.045, 0.022]
         ]);
         break;
       case 'next':
