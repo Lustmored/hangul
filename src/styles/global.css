@@ -384,6 +384,46 @@ button {
   gap: 14px;
 }
 
+.credits-list {
+  display: grid;
+  gap: 12px;
+}
+
+.credits-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.credits-card__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.credits-card__label {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.credits-card__value {
+  text-align: right;
+}
+
+.credits-link {
+  color: var(--accent-strong);
+  text-decoration: none;
+  text-align: right;
+}
+
+.credits-link:hover {
+  text-decoration: underline;
+}
+
 .setting-card__head {
   display: flex;
   align-items: baseline;

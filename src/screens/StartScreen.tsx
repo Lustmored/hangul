@@ -8,11 +8,12 @@ interface StartScreenProps {
   scoreboards: ScoreboardsByDifficulty;
   onToggleMute: () => void;
   onStartGame: () => void;
+  onOpenCredits: () => void;
   onOpenHistory: () => void;
   onOpenSettings: () => void;
 }
 
-export function StartScreen({ settings, scoreboards, onToggleMute, onStartGame, onOpenHistory, onOpenSettings }: StartScreenProps) {
+export function StartScreen({ settings, scoreboards, onToggleMute, onStartGame, onOpenCredits, onOpenHistory, onOpenSettings }: StartScreenProps) {
   const difficulty = getDifficultyPresetById(settings.difficultyId);
   const bestScore = scoreboards[settings.difficultyId].bestScore;
   const audioButtonLabel = settings.audioMuted ? 'Unmute audio' : 'Mute audio';
@@ -41,6 +42,7 @@ export function StartScreen({ settings, scoreboards, onToggleMute, onStartGame, 
           <div className="stack-actions">
             <Button block onClick={onStartGame}>Start Game</Button>
             <Button block tone="secondary" onClick={onOpenHistory}>Run History</Button>
+            <Button block tone="secondary" onClick={onOpenCredits}>Credits</Button>
             <div className="inline-actions">
               <Button block tone="ghost" onClick={onOpenSettings}>Settings</Button>
               <Button

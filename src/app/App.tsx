@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useReducer, useRef } from 'react';
 import { createSfxController } from '../audio';
 import { createMusicController, type MusicTrack } from '../music';
+import { CreditsScreen } from '../screens/CreditsScreen';
 import { Modal } from '../components/Modal';
 import { EndScreen } from '../screens/EndScreen';
 import { QuizScreen } from '../screens/QuizScreen';
@@ -273,6 +274,7 @@ export function App() {
             sfxRef.current.play('start');
             dispatch({ type: 'start-game' });
           }}
+          onOpenCredits={() => dispatch({ type: 'open-credits' })}
           onOpenHistory={() => {
             musicRef.current.prime();
             dispatch({ type: 'open-history' });
@@ -293,6 +295,15 @@ export function App() {
             navigateHome();
           }}
           onReset={() => dispatch({ type: 'open-reset-modal' })}
+        />
+      ) : null}
+
+      {state.screen === 'credits' ? (
+        <CreditsScreen
+          onBack={() => {
+            musicRef.current.prime();
+            navigateHome();
+          }}
         />
       ) : null}
 

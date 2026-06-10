@@ -16,6 +16,7 @@ export interface AppState {
 
 export type Action =
   | { type: 'open-settings' }
+  | { type: 'open-credits' }
   | { type: 'open-history' }
   | { type: 'go-home' }
   | { type: 'start-game' }
@@ -46,6 +47,8 @@ export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'open-settings':
       return { ...state, screen: 'settings' };
+    case 'open-credits':
+      return { ...state, screen: 'credits' };
     case 'open-history':
       return { ...state, screen: 'history' };
     case 'go-home':
