@@ -25,7 +25,13 @@ export function RomanizationSelector({ mode, onChange }: RomanizationSelectorPro
             />
             <span className="option-card__label">{preset.label}</span>
             <span className="option-card__meta">
-              <small className="option-card__hint">{mode === preset.id ? selected.hint : preset.hint}</small>
+              <small className="option-card__hint">
+                <span>{mode === preset.id ? selected.hint : preset.hint}</span>
+                <span className="option-card__examples">
+                  <span className="option-card__example">{preset.examples[0]}</span>
+                  <span className="option-card__example">{preset.examples[1]}</span>
+                </span>
+              </small>
             </span>
           </label>
         ))}

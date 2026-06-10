@@ -1,6 +1,9 @@
+import { ROMANIZATION_PRESETS, romanizeSyllable, type RomanizationMode, type RomanizationPreset } from '../romanization';
+export { ROMANIZATION_PRESETS };
+export type { RomanizationMode, RomanizationPreset } from '../romanization';
+
 export type QuestionMode = 'hangul-to-latin' | 'latin-to-hangul';
 export type DifficultyId = 'training' | 'easy' | 'normal' | 'hard' | 'asian';
-export type RomanizationMode = 'learning' | 'pronunciation';
 
 export interface DifficultyPreset {
   id: DifficultyId;
@@ -10,18 +13,11 @@ export interface DifficultyPreset {
   trackScore: boolean;
 }
 
-export interface RomanizationPreset {
-  id: RomanizationMode;
-  label: string;
-  hint: string;
-}
-
 export interface QuizItem {
   id: string;
   key: string;
   glyph: string;
-  romanization: string;
-  pronunciationRomanization: string;
+  romanizations: Record<RomanizationMode, string>;
   type: 'jamo' | 'syllable';
   difficultyBucket: number;
   enabledQuestionModes: QuestionMode[];
@@ -80,10 +76,6 @@ export const DIFFICULTY_PRESETS: DifficultyPreset[] = [
 ];
 
 export const RANKED_DIFFICULTY_PRESETS = DIFFICULTY_PRESETS.filter((preset) => preset.trackScore);
-export const ROMANIZATION_PRESETS: RomanizationPreset[] = [
-  { id: 'learning', label: 'Learning', hint: 'Shows syllable parts directly.' },
-  { id: 'pronunciation', label: 'Pronunciation', hint: 'Closer to real reading with batchim rules.' }
-];
 
 const ONSETS: OnsetDef[] = [
   { glyph: 'ㄱ', romanization: 'g', key: 'g', simple: true, confusable: ['k', 'kk'], family: 'velar-stop' },
@@ -167,38 +159,6 @@ const HIGH_CONFUSION_KEYS = new Set(['ae', 'e', 'yae', 'ye', 'oe', 'wae', 'we', 
 const HIGH_CONFUSION_VOWELS = new Set(['ae', 'e', 'yae', 'ye', 'oe', 'wae', 'we', 'ui', 'wi']);
 const SIMPLE_FINAL_KEYS = new Set(['g', 'n', 'd', 'r', 'm', 'b', 'ng']);
 const COMPLEX_FINAL_KEYS = new Set(['gs', 'nj', 'nh', 'lg', 'lm', 'lb', 'ls', 'lt', 'lp', 'lh', 'bs']);
-// For isolated syllable reading, pronunciation mode collapses finals to their
-// neutralized coda sound rather than preserving the written jamo cluster.
-const PRONUNCIATION_FINAL_ROMANIZATION: Record<FinalDef['key'], string> = {
-  none: '',
-  g: 'k',
-  kk: 'k',
-  gs: 'k',
-  n: 'n',
-  nj: 'n',
-  nh: 'n',
-  d: 't',
-  r: 'l',
-  lg: 'k',
-  lm: 'm',
-  lb: 'l',
-  ls: 'l',
-  lt: 'l',
-  lp: 'p',
-  lh: 'l',
-  m: 'm',
-  b: 'p',
-  bs: 'p',
-  s: 't',
-  ss: 't',
-  ng: 'ng',
-  j: 't',
-  ch: 't',
-  k: 'k',
-  t: 't',
-  p: 'p',
-  h: 't'
-};
 
 export const HANGUL_ITEMS: QuizItem[] = createHangulItems();
 
@@ -211,7 +171,7 @@ export function getRomanizationPresetById(id: RomanizationMode): RomanizationPre
 }
 
 export function getRomanization(item: QuizItem, mode: RomanizationMode): string {
-  return mode === 'pronunciation' ? item.pronunciationRomanization : item.romanization;
+  return item.romanizations[mode];
 }
 
 function createHangulItems(): QuizItem[] {
@@ -242,8 +202,10 @@ function createJamoItem(entry: OnsetDef | VowelDef): QuizItem {
     id: `jamo-${entry.glyph}`,
     key: entry.key,
     glyph: entry.glyph,
-    romanization: entry.romanization === '' ? '(silent)' : entry.romanization,
-    pronunciationRomanization: entry.romanization === '' ? '(silent)' : entry.romanization,
+    romanizations: {
+      spelling: entry.romanization === '' ? '(silent)' : entry.romanization,
+      pronunciation: entry.romanization === '' ? '(silent)' : entry.romanization
+    },
     type: 'jamo',
     difficultyBucket: isHighConfusion ? 8 : isBasic ? 1 : 2,
     enabledQuestionModes: ['hangul-to-latin', 'latin-to-hangul'],
@@ -272,8 +234,10 @@ function createSyllableItem(
   finalIndex: number,
   glyph: string
 ): QuizItem {
-  const romanization = `${onset.romanization}${vowel.romanization}${final.romanization}`;
-  const pronunciationRomanization = `${onset.romanization}${vowel.romanization}${PRONUNCIATION_FINAL_ROMANIZATION[final.key]}`;
+  const romanizations = {
+    spelling: romanizeSyllable({ onsetKey: onset.key, vowelKey: vowel.key, finalKey: final.key }, 'spelling'),
+    pronunciation: romanizeSyllable({ onsetKey: onset.key, vowelKey: vowel.key, finalKey: final.key }, 'pronunciation')
+  } satisfies Record<RomanizationMode, string>;
   const hasFinal = finalIndex !== 0;
   const isHardOnset = !onset.simple;
   const isHardVowel = !vowel.simple || vowel.compound;
@@ -298,8 +262,7 @@ function createSyllableItem(
     id: `syllable-${onsetIndex}-${vowelIndex}-${finalIndex}`,
     key: `${onset.key}-${vowel.key}-${final.key}`,
     glyph,
-    romanization,
-    pronunciationRomanization,
+    romanizations,
     type: 'syllable',
     difficultyBucket,
     enabledQuestionModes: ['hangul-to-latin', 'latin-to-hangul'],

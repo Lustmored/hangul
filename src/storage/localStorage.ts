@@ -13,7 +13,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   musicVolume: DEFAULT_MUSIC_VOLUME,
   audioMuted: false,
   difficultyId: 'normal',
-  romanizationMode: 'learning'
+  romanizationMode: 'spelling'
 };
 
 export function loadSettings(): AppSettings {

@@ -553,6 +553,17 @@ button {
   font-weight: 400;
 }
 
+.option-card__examples {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.option-card__example {
+  display: block;
+}
+
 .difficulty-hearts {
   color: var(--negative);
   letter-spacing: 0.08em;

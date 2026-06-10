@@ -6,7 +6,7 @@ vi.spyOn(Date, 'now').mockImplementation(() => 10_000);
 
 describe('quiz generation', () => {
   it('creates a first question for a new session', () => {
-    const session = createInitialSession('easy', 'learning');
+    const session = createInitialSession('easy', 'spelling');
 
     expect(session.question).not.toBeNull();
     expect(session.question?.options).toHaveLength(4);
@@ -16,10 +16,10 @@ describe('quiz generation', () => {
   });
 
   it('does not reuse the consumed prompt item in the next question', () => {
-    const first = createInitialSession('easy', 'learning');
+    const first = createInitialSession('easy', 'spelling');
     const promptId = first.question!.promptItem.id;
     const afterAnswer = resolveAnswer(first, first.question!.correctOptionId).nextSession;
-    const second = advanceAfterResult(afterAnswer, 'easy', 'learning');
+    const second = advanceAfterResult(afterAnswer, 'easy', 'spelling');
 
     expect(second.question?.promptItem.id).not.toBe(promptId);
   });
@@ -29,7 +29,7 @@ describe('quiz generation', () => {
   });
 
   it('deducts a life on timeout without increasing the score', () => {
-    const session = createInitialSession('hard', 'learning');
+    const session = createInitialSession('hard', 'spelling');
     const resolved = resolveAnswer(session, null).nextSession;
 
     expect(resolved.lives).toBe(1);
@@ -38,7 +38,7 @@ describe('quiz generation', () => {
   });
 
   it('does not deduct lives in training mode', () => {
-    const session = createInitialSession('training', 'learning');
+    const session = createInitialSession('training', 'spelling');
     const resolved = resolveAnswer(session, null).nextSession;
 
     expect(resolved.lives).toBeNull();
@@ -48,7 +48,7 @@ describe('quiz generation', () => {
 
   it('can still create a question when the preferred bucket is exhausted', () => {
     const usedIds = HANGUL_ITEMS.filter((item) => item.difficultyBucket === 1).map((item) => item.id);
-    const question = createNextQuestion(usedIds, 0, 'normal', 'learning');
+    const question = createNextQuestion(usedIds, 0, 'normal', 'spelling');
 
     expect(question).not.toBeNull();
   });
@@ -64,7 +64,7 @@ describe('quiz generation', () => {
     const close = HANGUL_ITEMS.find((item) => item.id === 'jamo-ㅌ')!;
     const far = HANGUL_ITEMS.find((item) => item.id === 'jamo-ㅁ')!;
 
-    expect(getDistractorScore(source, close, 'learning')).toBeGreaterThan(getDistractorScore(source, far, 'learning'));
+    expect(getDistractorScore(source, close, 'spelling')).toBeGreaterThan(getDistractorScore(source, far, 'spelling'));
   });
 
   it('prefers syllables that differ by one component over distant syllables', () => {
@@ -72,14 +72,14 @@ describe('quiz generation', () => {
     const close = HANGUL_ITEMS.find((item) => item.glyph === '소')!;
     const far = HANGUL_ITEMS.find((item) => item.glyph === '빵')!;
 
-    expect(getDistractorScore(source, close, 'learning')).toBeGreaterThan(getDistractorScore(source, far, 'learning'));
+    expect(getDistractorScore(source, close, 'spelling')).toBeGreaterThan(getDistractorScore(source, far, 'spelling'));
   });
 
   it('builds options with at least one close distractor for a syllable', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0);
 
     const source = HANGUL_ITEMS.find((item) => item.glyph === '서')!;
-    const options = buildOptions(source, 'hangul-to-latin', 'learning');
+    const options = buildOptions(source, 'hangul-to-latin', 'spelling');
     const closeRomanizations = new Set(['so', 'seu', 'seo', 'sseo', 'jeo']);
 
     expect(options).toHaveLength(4);
@@ -89,10 +89,14 @@ describe('quiz generation', () => {
     vi.spyOn(Date, 'now').mockImplementation(() => 10_000);
   });
 
-  it('keeps the current decomposed mode for learning-oriented cluster drills', () => {
+  it('uses official NIKL spelling romanization for orthography mode', () => {
     const value = HANGUL_ITEMS.find((item) => item.glyph === '값')!;
+    const outside = HANGUL_ITEMS.find((item) => item.glyph === '밖')!;
+    const house = HANGUL_ITEMS.find((item) => item.glyph === '집')!;
 
-    expect(getRomanization(value, 'learning')).toBe('gaps');
+    expect(getRomanization(value, 'spelling')).toBe('gabs');
+    expect(getRomanization(outside, 'spelling')).toBe('bakk');
+    expect(getRomanization(house, 'spelling')).toBe('jib');
   });
 
   it('uses a pronunciation-oriented romanization for batchim-heavy syllables', () => {
