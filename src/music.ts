@@ -257,7 +257,8 @@ export function createMusicController(initialVolume: number): MusicController {
         try {
           const response = await fetch(buildTrackSrc(managed.stem, baseUrl, format));
           if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            lastError = `HTTP ${response.status}`;
+            continue;
           }
 
           const blob = await response.blob();
@@ -274,8 +275,6 @@ export function createMusicController(initialVolume: number): MusicController {
           lastError = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
         }
       }
-
-      throw new Error(`No playable source for ${managed.stem}`);
     })().finally(() => {
       managed.loadingPromise = null;
     });
