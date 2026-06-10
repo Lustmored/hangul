@@ -6,9 +6,11 @@ const RUN_HISTORY_KEY = 'hangul-rush:run-history';
 
 const defaultScoreboard = (): Scoreboard => ({ bestScore: 0, recentRuns: [] });
 const DEFAULT_SFX_VOLUME = 85;
+const DEFAULT_MUSIC_VOLUME = 35;
 
 export const DEFAULT_SETTINGS: AppSettings = {
   sfxVolume: DEFAULT_SFX_VOLUME,
+  musicVolume: DEFAULT_MUSIC_VOLUME,
   difficultyId: 'normal'
 };
 
@@ -22,15 +24,20 @@ export function loadSettings(): AppSettings {
     const parsed = JSON.parse(raw) as Partial<AppSettings & { soundEnabled?: boolean }>;
     const parsedDifficultyId = typeof parsed.difficultyId === 'string' ? parsed.difficultyId : null;
     const validDifficulty = DIFFICULTY_PRESETS.some((preset) => preset.id === parsedDifficultyId);
-    const parsedVolume =
+    const parsedSfxVolume =
       typeof parsed.sfxVolume === 'number'
         ? parsed.sfxVolume
         : typeof parsed.soundEnabled === 'boolean'
           ? (parsed.soundEnabled ? DEFAULT_SFX_VOLUME : 0)
           : DEFAULT_SETTINGS.sfxVolume;
+    const parsedMusicVolume =
+      typeof parsed.musicVolume === 'number'
+        ? parsed.musicVolume
+        : DEFAULT_SETTINGS.musicVolume;
 
     return {
-      sfxVolume: clampVolume(parsedVolume),
+      sfxVolume: clampVolume(parsedSfxVolume),
+      musicVolume: clampVolume(parsedMusicVolume),
       difficultyId: validDifficulty ? (parsedDifficultyId as DifficultyId) : DEFAULT_SETTINGS.difficultyId
     };
   } catch {
@@ -43,7 +50,8 @@ export function saveSettings(settings: AppSettings): void {
     SETTINGS_KEY,
     JSON.stringify({
       ...settings,
-      sfxVolume: clampVolume(settings.sfxVolume)
+      sfxVolume: clampVolume(settings.sfxVolume),
+      musicVolume: clampVolume(settings.musicVolume)
     })
   );
 }

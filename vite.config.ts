@@ -12,7 +12,7 @@ export default defineConfig({
       base,
       registerType: 'autoUpdate',
       injectRegister: 'script',
-      includeAssets: ['favicon.ico', 'favicon.png', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.ico', 'favicon.png', 'apple-touch-icon.png', 'audio/*.m4a', 'audio/*.ogg'],
       manifest: {
         name: 'Hangul Rush',
         short_name: 'Hangul Rush',
@@ -44,7 +44,7 @@ export default defineConfig({
       workbox: {
         cleanupOutdatedCaches: true,
         navigateFallback: 'index.html',
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest,m4a,ogg}'],
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.mode === 'navigate',
@@ -69,6 +69,16 @@ export default defineConfig({
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'images'
+            }
+          },
+          {
+            urlPattern: ({ request }) => request.destination === 'audio',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'audio',
+              expiration: {
+                maxEntries: 8
+              }
             }
           }
         ]

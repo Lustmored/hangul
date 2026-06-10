@@ -1068,6 +1068,103 @@ button {
   }
 }
 
+@media (max-height: 760px) {
+  .shell {
+    padding: 14px;
+  }
+
+  .quiz-card {
+    height: calc(100dvh - 28px);
+    max-height: none;
+    padding: 16px;
+    border-radius: 24px;
+  }
+
+  .app-view__middle--quiz {
+    gap: 10px;
+    padding: 10px 0;
+  }
+
+  .quiz-stage-bottom {
+    gap: 10px;
+  }
+
+  .app-view__bottom {
+    padding-top: 10px;
+  }
+
+  .quiz-action-area {
+    gap: 8px;
+  }
+
+  .quiz-action-lane,
+  .question-progress {
+    min-height: 46px;
+  }
+
+  .quiz-secondary-action .button,
+  .quiz-end-button {
+    min-height: 38px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .prompt {
+    min-height: 110px;
+  }
+
+  .prompt--hangul.prompt--short,
+  .prompt--latin.prompt--short {
+    font-size: clamp(3.6rem, 12vh, 6.4rem);
+  }
+
+  .prompt--hangul.prompt--medium,
+  .prompt--latin.prompt--medium {
+    font-size: clamp(3.1rem, 10vh, 5.2rem);
+  }
+
+  .prompt--hangul.prompt--long,
+  .prompt--latin.prompt--long {
+    font-size: clamp(2.4rem, 7.2vh, 4.2rem);
+  }
+
+  .quiz-status-lane {
+    min-height: 40px;
+  }
+
+  .question-timer,
+  .result-status {
+    min-height: 34px;
+    min-width: 100px;
+    padding: 0 14px;
+    font-size: 0.92rem;
+  }
+
+  .answer-grid {
+    gap: 8px;
+  }
+
+  .answer-card {
+    min-height: 72px;
+    padding: 12px 10px;
+  }
+
+  .answer-card--hangul.answer-card--short .answer-card__label,
+  .answer-card--latin.answer-card--short .answer-card__label {
+    font-size: clamp(2.2rem, 7vh, 3.2rem);
+  }
+
+  .answer-card--hangul.answer-card--medium .answer-card__label,
+  .answer-card--latin.answer-card--medium .answer-card__label {
+    font-size: clamp(1.9rem, 6vh, 2.7rem);
+  }
+
+  .answer-card--hangul.answer-card--long .answer-card__label,
+  .answer-card--latin.answer-card--long .answer-card__label {
+    font-size: clamp(1.2rem, 4.1vh, 1.8rem);
+  }
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

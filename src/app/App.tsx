@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useReducer, useRef } from 'react';
 import { createSfxController } from '../audio';
+import { createMusicController, type MusicTrack } from '../music';
 import { Modal } from '../components/Modal';
 import { EndScreen } from '../screens/EndScreen';
 import { QuizScreen } from '../screens/QuizScreen';
@@ -15,6 +16,7 @@ export function App() {
   const initialState = useMemo(() => createInitialAppState(loadSettings(), loadScoreboards()), []);
   const [state, dispatch] = useReducer(reducer, initialState);
   const sfxRef = useRef(createSfxController(initialState.settings.sfxVolume));
+  const musicRef = useRef(createMusicController(initialState.settings.musicVolume));
   const stateRef = useRef(state);
   const previousScreenRef = useRef(state.screen);
   const overlayEntryActiveRef = useRef(false);
@@ -29,7 +31,32 @@ export function App() {
   useEffect(() => {
     saveSettings(state.settings);
     sfxRef.current.setVolume(state.settings.sfxVolume);
+    musicRef.current.setVolume(state.settings.musicVolume);
   }, [state.settings]);
+
+  useEffect(() => {
+    const primeMusic = () => {
+      musicRef.current.prime();
+    };
+
+    window.addEventListener('pointerdown', primeMusic, { passive: true });
+    window.addEventListener('keydown', primeMusic);
+
+    return () => {
+      window.removeEventListener('pointerdown', primeMusic);
+      window.removeEventListener('keydown', primeMusic);
+    };
+  }, []);
+
+  useEffect(() => {
+    musicRef.current.setTrack(getMusicTrackForScreen(state.screen));
+  }, [state.screen]);
+
+  useEffect(() => {
+    return () => {
+      musicRef.current.dispose();
+    };
+  }, []);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -233,11 +260,18 @@ export function App() {
           settings={state.settings}
           scoreboards={state.scoreboards}
           onStartGame={() => {
+            musicRef.current.prime();
             sfxRef.current.play('start');
             dispatch({ type: 'start-game' });
           }}
-          onOpenHistory={() => dispatch({ type: 'open-history' })}
-          onOpenSettings={() => dispatch({ type: 'open-settings' })}
+          onOpenHistory={() => {
+            musicRef.current.prime();
+            dispatch({ type: 'open-history' });
+          }}
+          onOpenSettings={() => {
+            musicRef.current.prime();
+            dispatch({ type: 'open-settings' });
+          }}
         />
       ) : null}
 
@@ -245,7 +279,10 @@ export function App() {
         <SettingsScreen
           settings={state.settings}
           onChange={(settings) => dispatch({ type: 'set-settings', settings })}
-          onBack={navigateHome}
+          onBack={() => {
+            musicRef.current.prime();
+            navigateHome();
+          }}
           onReset={() => dispatch({ type: 'open-reset-modal' })}
         />
       ) : null}
@@ -255,7 +292,10 @@ export function App() {
           activeDifficulty={state.historyDifficultyTab}
           scoreboards={state.scoreboards}
           onChangeDifficulty={(difficultyId) => dispatch({ type: 'set-history-tab', difficultyId })}
-          onBack={navigateHome}
+          onBack={() => {
+            musicRef.current.prime();
+            navigateHome();
+          }}
         />
       ) : null}
 
@@ -266,6 +306,7 @@ export function App() {
           animatedDamage={state.animatedDamage}
           onEndRun={handleEndRun}
           onAnswer={(optionId) => {
+            musicRef.current.prime();
             sfxRef.current.play('select');
             handleAnswer(state.session, optionId);
           }}
@@ -300,4 +341,8 @@ export function App() {
       ) : null}
     </>
   );
+}
+
+function getMusicTrackForScreen(screen: string): MusicTrack {
+  return screen === 'quiz' ? 'gameplay' : 'menu';
 }

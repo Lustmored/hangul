@@ -11,7 +11,8 @@ interface SettingsScreenProps {
 }
 
 export function SettingsScreen({ settings, onChange, onBack, onReset }: SettingsScreenProps) {
-  const volumeLabel = settings.sfxVolume === 0 ? 'Muted' : `${settings.sfxVolume}%`;
+  const sfxVolumeLabel = settings.sfxVolume === 0 ? 'Muted' : `${settings.sfxVolume}%`;
+  const musicVolumeLabel = settings.musicVolume === 0 ? 'Muted' : `${settings.musicVolume}%`;
 
   return (
     <main className="screen shell">
@@ -25,7 +26,7 @@ export function SettingsScreen({ settings, onChange, onBack, onReset }: Settings
             <div className="setting-card">
               <div className="setting-card__head">
                 <h2>SFX Volume</h2>
-                <strong className="setting-card__value">{volumeLabel}</strong>
+                <strong className="setting-card__value">{sfxVolumeLabel}</strong>
               </div>
 
               <div className="volume-slider-card">
@@ -47,47 +48,79 @@ export function SettingsScreen({ settings, onChange, onBack, onReset }: Settings
                   <span>Max</span>
                 </div>
               </div>
-
-              <p className="muted">SFX only. No background music in the first version.</p>
             </div>
           </section>
 
           <section className="section-block">
-            <div className="group-label">Difficulty</div>
-            <div className="option-list">
-              {DIFFICULTY_PRESETS.map((preset) => (
-                <label key={preset.id} className={`option-card ${settings.difficultyId === preset.id ? 'option-card--selected' : ''}`}>
+            <div className="setting-card">
+              <div className="setting-card__head">
+                <h2>Music Volume</h2>
+                <strong className="setting-card__value">{musicVolumeLabel}</strong>
+              </div>
+
+              <div className="volume-slider-card">
+                <label className="volume-slider" htmlFor="music-volume">
+                  <span className="sr-only">Set music volume</span>
                   <input
-                    type="radio"
-                    name="difficulty"
-                    checked={settings.difficultyId === preset.id}
-                    onChange={() => onChange({ ...settings, difficultyId: preset.id })}
+                    id="music-volume"
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value={settings.musicVolume}
+                    style={{ ['--slider-fill' as string]: `${settings.musicVolume}%` }}
+                    onChange={(event) => onChange({ ...settings, musicVolume: Number(event.target.value) })}
                   />
-                  <span className="option-card__label">{preset.label}</span>
-                  <span className="option-card__meta">
-                    <small className="option-card__hint">
-                      {preset.seconds === null || preset.lives === null ? (
-                        <>
-                          No timer ·{' '}
-                          <span className="difficulty-hearts" aria-label="Infinite lives">
-                            ∞♥
-                          </span>{' '}
-                          · no high scores
-                        </>
-                      ) : (
-                        <>
-                          {preset.seconds}s ·{' '}
-                          <span className="difficulty-hearts" aria-label={`${preset.lives} lives`}>
-                            {Array.from({ length: preset.lives }, (_, index) => (
-                              <span key={index} aria-hidden="true">♥</span>
-                            ))}
-                          </span>
-                        </>
-                      )}
-                    </small>
-                  </span>
                 </label>
-              ))}
+                <div className="volume-slider__legend" aria-hidden="true">
+                  <span>Mute</span>
+                  <span>Max</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="section-block">
+            <div className="setting-card">
+              <div className="setting-card__head">
+                <h2>Difficulty</h2>
+              </div>
+
+              <div className="option-list">
+                {DIFFICULTY_PRESETS.map((preset) => (
+                  <label key={preset.id} className={`option-card ${settings.difficultyId === preset.id ? 'option-card--selected' : ''}`}>
+                    <input
+                      type="radio"
+                      name="difficulty"
+                      checked={settings.difficultyId === preset.id}
+                      onChange={() => onChange({ ...settings, difficultyId: preset.id })}
+                    />
+                    <span className="option-card__label">{preset.label}</span>
+                    <span className="option-card__meta">
+                      <small className="option-card__hint">
+                        {preset.seconds === null || preset.lives === null ? (
+                          <>
+                            No timer ·{' '}
+                            <span className="difficulty-hearts" aria-label="Infinite lives">
+                              ∞♥
+                            </span>{' '}
+                            · no high scores
+                          </>
+                        ) : (
+                          <>
+                            {preset.seconds}s ·{' '}
+                            <span className="difficulty-hearts" aria-label={`${preset.lives} lives`}>
+                              {Array.from({ length: preset.lives }, (_, index) => (
+                                <span key={index} aria-hidden="true">♥</span>
+                              ))}
+                            </span>
+                          </>
+                        )}
+                      </small>
+                    </span>
+                  </label>
+                ))}
+              </div>
             </div>
           </section>
 

@@ -5,6 +5,7 @@ export type { DifficultyId };
 
 export interface AppSettings {
   sfxVolume: number;
+  musicVolume: number;
   difficultyId: DifficultyId;
 }
 
