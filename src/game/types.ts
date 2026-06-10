@@ -1,6 +1,6 @@
 import type { DifficultyId, QuestionMode, QuizItem } from '../data/hangul';
 
-export type AppScreen = 'start' | 'settings' | 'credits' | 'history' | 'quiz' | 'gameOver' | 'win' | 'perfectRun';
+export type AppScreen = 'launch' | 'start' | 'settings' | 'credits' | 'history' | 'quiz' | 'gameOver' | 'win' | 'perfectRun';
 export type { DifficultyId };
 
 export interface AppSettings {

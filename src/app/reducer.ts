@@ -15,6 +15,7 @@ export interface AppState {
 }
 
 export type Action =
+  | { type: 'enter-app' }
   | { type: 'open-settings' }
   | { type: 'open-credits' }
   | { type: 'open-history' }
@@ -31,7 +32,7 @@ export type Action =
 
 export function createInitialAppState(settings: AppSettings, scoreboards: ScoreboardsByDifficulty): AppState {
   return {
-    screen: 'start',
+    screen: 'launch',
     settings,
     scoreboards,
     historyDifficultyTab: getDefaultHistoryDifficultyId(settings.difficultyId),
@@ -45,6 +46,8 @@ export function createInitialAppState(settings: AppSettings, scoreboards: Scoreb
 
 export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
+    case 'enter-app':
+      return { ...state, screen: 'start' };
     case 'open-settings':
       return { ...state, screen: 'settings' };
     case 'open-credits':

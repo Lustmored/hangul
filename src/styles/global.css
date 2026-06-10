@@ -173,6 +173,11 @@ button {
   justify-content: center;
 }
 
+.app-view__middle--launch {
+  align-items: center;
+  gap: 24px;
+}
+
 .app-view__middle--scrollable {
   overflow-y: auto;
   padding-right: 4px;
@@ -294,6 +299,14 @@ button {
 }
 
 .inline-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.launch-actions {
+  width: min(100%, 420px);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;

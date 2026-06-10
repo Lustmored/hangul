@@ -2,6 +2,7 @@ import { useEffect, useMemo, useReducer, useRef } from 'react';
 import { createSfxController } from '../audio';
 import { createMusicController, type MusicTrack } from '../music';
 import { CreditsScreen } from '../screens/CreditsScreen';
+import { LaunchScreen } from '../screens/LaunchScreen';
 import { Modal } from '../components/Modal';
 import { EndScreen } from '../screens/EndScreen';
 import { QuizScreen } from '../screens/QuizScreen';
@@ -34,20 +35,6 @@ export function App() {
     sfxRef.current.setVolume(state.settings.audioMuted ? 0 : state.settings.sfxVolume);
     musicRef.current.setVolume(state.settings.audioMuted ? 0 : state.settings.musicVolume);
   }, [state.settings]);
-
-  useEffect(() => {
-    const primeMusic = () => {
-      musicRef.current.prime();
-    };
-
-    window.addEventListener('pointerdown', primeMusic, { passive: true });
-    window.addEventListener('keydown', primeMusic);
-
-    return () => {
-      window.removeEventListener('pointerdown', primeMusic);
-      window.removeEventListener('keydown', primeMusic);
-    };
-  }, []);
 
   useEffect(() => {
     musicRef.current.setTrack(getMusicTrackForScreen(state.screen));
@@ -256,10 +243,15 @@ export function App() {
 
   return (
     <>
-      {state.screen === 'start' ? (
-        <StartScreen
+      {state.screen === 'launch' ? (
+        <LaunchScreen
           settings={state.settings}
-          scoreboards={state.scoreboards}
+          onEnterApp={() => {
+            if (!state.settings.audioMuted) {
+              musicRef.current.prime();
+            }
+            dispatch({ type: 'enter-app' });
+          }}
           onToggleMute={() =>
             dispatch({
               type: 'set-settings',
@@ -269,6 +261,25 @@ export function App() {
               }
             })
           }
+        />
+      ) : null}
+
+      {state.screen === 'start' ? (
+        <StartScreen
+          settings={state.settings}
+          scoreboards={state.scoreboards}
+          onToggleMute={() => {
+            if (state.settings.audioMuted) {
+              musicRef.current.prime();
+            }
+            dispatch({
+              type: 'set-settings',
+              settings: {
+                ...state.settings,
+                audioMuted: !state.settings.audioMuted
+              }
+            });
+          }}
           onStartGame={() => {
             musicRef.current.prime();
             sfxRef.current.play('start');
@@ -364,5 +375,9 @@ export function App() {
 }
 
 function getMusicTrackForScreen(screen: string): MusicTrack {
+  if (screen === 'launch') {
+    return null;
+  }
+
   return screen === 'quiz' ? 'gameplay' : 'menu';
 }
