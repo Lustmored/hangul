@@ -293,6 +293,13 @@ button {
   gap: 12px;
 }
 
+.inline-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: stretch;
+}
+
 .button {
   border: 0;
   border-radius: 16px;
@@ -307,6 +314,22 @@ button {
 
 .button--block {
   width: 100%;
+}
+
+.icon-button {
+  min-width: 56px;
+  min-height: 56px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-button__icon {
+  width: 22px;
+  height: 22px;
+  display: block;
+  flex: 0 0 auto;
 }
 
 .button--primary {

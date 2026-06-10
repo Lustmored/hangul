@@ -11,8 +11,8 @@ interface SettingsScreenProps {
 }
 
 export function SettingsScreen({ settings, onChange, onBack, onReset }: SettingsScreenProps) {
-  const sfxVolumeLabel = settings.sfxVolume === 0 ? 'Muted' : `${settings.sfxVolume}%`;
-  const musicVolumeLabel = settings.musicVolume === 0 ? 'Muted' : `${settings.musicVolume}%`;
+  const sfxVolumeLabel = settings.audioMuted ? 'Muted' : settings.sfxVolume === 0 ? 'Muted' : `${settings.sfxVolume}%`;
+  const musicVolumeLabel = settings.audioMuted ? 'Muted' : settings.musicVolume === 0 ? 'Muted' : `${settings.musicVolume}%`;
 
   return (
     <main className="screen shell">

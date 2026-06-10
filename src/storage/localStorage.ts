@@ -11,6 +11,7 @@ const DEFAULT_MUSIC_VOLUME = 35;
 export const DEFAULT_SETTINGS: AppSettings = {
   sfxVolume: DEFAULT_SFX_VOLUME,
   musicVolume: DEFAULT_MUSIC_VOLUME,
+  audioMuted: false,
   difficultyId: 'normal'
 };
 
@@ -38,6 +39,7 @@ export function loadSettings(): AppSettings {
     return {
       sfxVolume: clampVolume(parsedSfxVolume),
       musicVolume: clampVolume(parsedMusicVolume),
+      audioMuted: typeof parsed.audioMuted === 'boolean' ? parsed.audioMuted : false,
       difficultyId: validDifficulty ? (parsedDifficultyId as DifficultyId) : DEFAULT_SETTINGS.difficultyId
     };
   } catch {
@@ -51,7 +53,8 @@ export function saveSettings(settings: AppSettings): void {
     JSON.stringify({
       ...settings,
       sfxVolume: clampVolume(settings.sfxVolume),
-      musicVolume: clampVolume(settings.musicVolume)
+      musicVolume: clampVolume(settings.musicVolume),
+      audioMuted: Boolean(settings.audioMuted)
     })
   );
 }

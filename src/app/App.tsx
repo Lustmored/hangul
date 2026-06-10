@@ -30,8 +30,8 @@ export function App() {
 
   useEffect(() => {
     saveSettings(state.settings);
-    sfxRef.current.setVolume(state.settings.sfxVolume);
-    musicRef.current.setVolume(state.settings.musicVolume);
+    sfxRef.current.setVolume(state.settings.audioMuted ? 0 : state.settings.sfxVolume);
+    musicRef.current.setVolume(state.settings.audioMuted ? 0 : state.settings.musicVolume);
   }, [state.settings]);
 
   useEffect(() => {
@@ -259,6 +259,15 @@ export function App() {
         <StartScreen
           settings={state.settings}
           scoreboards={state.scoreboards}
+          onToggleMute={() =>
+            dispatch({
+              type: 'set-settings',
+              settings: {
+                ...state.settings,
+                audioMuted: !state.settings.audioMuted
+              }
+            })
+          }
           onStartGame={() => {
             musicRef.current.prime();
             sfxRef.current.play('start');
