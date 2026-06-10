@@ -1,4 +1,4 @@
-import type { DifficultyId, QuestionMode, QuizItem } from '../data/hangul';
+import type { DifficultyId, QuestionMode, QuizItem, RomanizationMode } from '../data/hangul';
 
 export type AppScreen = 'launch' | 'start' | 'settings' | 'credits' | 'history' | 'quiz' | 'gameOver' | 'win' | 'perfectRun';
 export type { DifficultyId };
@@ -8,6 +8,7 @@ export interface AppSettings {
   musicVolume: number;
   audioMuted: boolean;
   difficultyId: DifficultyId;
+  romanizationMode: RomanizationMode;
 }
 
 export interface SavedRun {

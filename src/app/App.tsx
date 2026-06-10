@@ -249,13 +249,13 @@ export function App() {
     sfxRef.current.play('next');
     dispatch({
       type: 'set-session',
-      session: advanceAfterResult(state.session, state.settings.difficultyId)
+      session: advanceAfterResult(state.session, state.settings.difficultyId, state.settings.romanizationMode)
     });
   };
 
   const handlePlayAgain = () => {
     sfxRef.current.play('start');
-    dispatch({ type: 'set-session', session: createInitialSession(state.settings.difficultyId) });
+    dispatch({ type: 'set-session', session: createInitialSession(state.settings.difficultyId, state.settings.romanizationMode) });
   };
 
   const handleResetData = () => {
@@ -299,6 +299,15 @@ export function App() {
               settings: {
                 ...state.settings,
                 audioMuted: !state.settings.audioMuted
+              }
+            })
+          }
+          onChangeRomanizationMode={(romanizationMode) =>
+            dispatch({
+              type: 'set-settings',
+              settings: {
+                ...state.settings,
+                romanizationMode
               }
             })
           }

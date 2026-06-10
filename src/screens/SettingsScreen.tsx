@@ -1,5 +1,6 @@
 import { Button } from '../components/Button';
 import { BrandWordmark } from '../components/BrandWordmark';
+import { RomanizationSelector } from '../components/RomanizationSelector';
 import { DIFFICULTY_PRESETS } from '../data/hangul';
 import type { AppSettings } from '../game/types';
 
@@ -78,6 +79,13 @@ export function SettingsScreen({ settings, onChange, onBack, onReset }: Settings
                 </div>
               </div>
             </div>
+          </section>
+
+          <section className="section-block">
+            <RomanizationSelector
+              mode={settings.romanizationMode}
+              onChange={(romanizationMode) => onChange({ ...settings, romanizationMode })}
+            />
           </section>
 
           <section className="section-block">

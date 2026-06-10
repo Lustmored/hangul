@@ -1,4 +1,4 @@
-import { DIFFICULTY_PRESETS, RANKED_DIFFICULTY_PRESETS, type DifficultyId } from '../data/hangul';
+import { DIFFICULTY_PRESETS, ROMANIZATION_PRESETS, RANKED_DIFFICULTY_PRESETS, type DifficultyId } from '../data/hangul';
 import type { AppSettings, SavedRun, Scoreboard, ScoreboardsByDifficulty } from '../game/types';
 
 const SETTINGS_KEY = 'hangul-rush:settings';
@@ -12,7 +12,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   sfxVolume: DEFAULT_SFX_VOLUME,
   musicVolume: DEFAULT_MUSIC_VOLUME,
   audioMuted: false,
-  difficultyId: 'normal'
+  difficultyId: 'normal',
+  romanizationMode: 'learning'
 };
 
 export function loadSettings(): AppSettings {
@@ -25,6 +26,8 @@ export function loadSettings(): AppSettings {
     const parsed = JSON.parse(raw) as Partial<AppSettings & { soundEnabled?: boolean }>;
     const parsedDifficultyId = typeof parsed.difficultyId === 'string' ? parsed.difficultyId : null;
     const validDifficulty = DIFFICULTY_PRESETS.some((preset) => preset.id === parsedDifficultyId);
+    const parsedRomanizationMode = typeof parsed.romanizationMode === 'string' ? parsed.romanizationMode : null;
+    const validRomanizationMode = ROMANIZATION_PRESETS.some((preset) => preset.id === parsedRomanizationMode);
     const parsedSfxVolume =
       typeof parsed.sfxVolume === 'number'
         ? parsed.sfxVolume
@@ -40,7 +43,8 @@ export function loadSettings(): AppSettings {
       sfxVolume: clampVolume(parsedSfxVolume),
       musicVolume: clampVolume(parsedMusicVolume),
       audioMuted: typeof parsed.audioMuted === 'boolean' ? parsed.audioMuted : false,
-      difficultyId: validDifficulty ? (parsedDifficultyId as DifficultyId) : DEFAULT_SETTINGS.difficultyId
+      difficultyId: validDifficulty ? (parsedDifficultyId as DifficultyId) : DEFAULT_SETTINGS.difficultyId,
+      romanizationMode: validRomanizationMode ? (parsedRomanizationMode as AppSettings['romanizationMode']) : DEFAULT_SETTINGS.romanizationMode
     };
   } catch {
     return DEFAULT_SETTINGS;

@@ -178,6 +178,10 @@ button {
   gap: 24px;
 }
 
+.app-view__middle--launch .setting-card {
+  width: min(100%, 520px);
+}
+
 .app-view__middle--scrollable {
   overflow-y: auto;
   padding-right: 4px;
@@ -306,7 +310,7 @@ button {
 }
 
 .launch-actions {
-  width: min(100%, 420px);
+  width: min(100%, 520px);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;

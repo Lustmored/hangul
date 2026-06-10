@@ -1,4 +1,4 @@
-import { getDifficultyPresetById } from '../data/hangul';
+import { getDifficultyPresetById, getRomanizationPresetById } from '../data/hangul';
 import { AudioIcon } from '../components/AudioIcon';
 import { BrandWordmark } from '../components/BrandWordmark';
 import type { AppSettings, ScoreboardsByDifficulty } from '../game/types';
@@ -16,6 +16,7 @@ interface StartScreenProps {
 
 export function StartScreen({ settings, scoreboards, onToggleMute, onStartGame, onOpenCredits, onOpenHistory, onOpenSettings }: StartScreenProps) {
   const difficulty = getDifficultyPresetById(settings.difficultyId);
+  const romanization = getRomanizationPresetById(settings.romanizationMode);
   const bestScore = scoreboards[settings.difficultyId].bestScore;
   const audioButtonLabel = settings.audioMuted ? 'Unmute audio' : 'Mute audio';
 
@@ -35,6 +36,10 @@ export function StartScreen({ settings, scoreboards, onToggleMute, onStartGame, 
             <div className="stat-card">
               <span className="stat-card__label">Best Score</span>
               <strong>{difficulty.trackScore ? bestScore : 'Not tracked'}</strong>
+            </div>
+            <div className="stat-card">
+              <span className="stat-card__label">Romanization</span>
+              <strong>{romanization.label}</strong>
             </div>
           </div>
         </div>

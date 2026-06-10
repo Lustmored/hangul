@@ -60,7 +60,7 @@ export function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         screen: 'quiz',
-        session: createInitialSession(state.settings.difficultyId),
+        session: createInitialSession(state.settings.difficultyId, state.settings.romanizationMode),
         animatedDamage: false,
         animatedScore: false
       };

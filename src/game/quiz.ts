@@ -1,4 +1,4 @@
-import { HANGUL_ITEMS, getDifficultyPresetById, type DifficultyId, type QuestionMode, type QuizItem } from '../data/hangul';
+import { HANGUL_ITEMS, getDifficultyPresetById, getRomanization, type DifficultyId, type QuestionMode, type QuizItem, type RomanizationMode } from '../data/hangul';
 import type { QuestionOption, QuizQuestion, QuestionResult, QuizSession } from './types';
 
 const BUCKET_WEIGHTS: Array<{ minScore: number; weights: Record<number, number> }> = [
@@ -9,7 +9,7 @@ const BUCKET_WEIGHTS: Array<{ minScore: number; weights: Record<number, number> 
   { minScore: 24, weights: { 3: 2, 4: 3, 5: 5, 6: 5, 7: 4, 8: 4 } }
 ];
 
-export function createInitialSession(difficultyId: DifficultyId): QuizSession {
+export function createInitialSession(difficultyId: DifficultyId, romanizationMode: RomanizationMode): QuizSession {
   const difficulty = getDifficultyPresetById(difficultyId);
 
   return {
@@ -19,7 +19,7 @@ export function createInitialSession(difficultyId: DifficultyId): QuizSession {
     terminalOutcome: null,
     score: 0,
     usedItemIds: [],
-    question: createNextQuestion([], 0, difficultyId),
+    question: createNextQuestion([], 0, difficultyId, romanizationMode),
     questionStartedAt: Date.now(),
     totalAnswerTimeMs: 0,
     lastResult: null,
@@ -27,7 +27,12 @@ export function createInitialSession(difficultyId: DifficultyId): QuizSession {
   };
 }
 
-export function createNextQuestion(usedItemIds: string[], score: number, difficultyId: DifficultyId): QuizQuestion | null {
+export function createNextQuestion(
+  usedItemIds: string[],
+  score: number,
+  difficultyId: DifficultyId,
+  romanizationMode: RomanizationMode
+): QuizQuestion | null {
   const mode: QuestionMode = Math.random() < 0.5 ? 'hangul-to-latin' : 'latin-to-hangul';
   const nextBucket = pickBucket(score);
   const unusedItems = HANGUL_ITEMS.filter((item) => !usedItemIds.includes(item.id));
@@ -39,12 +44,12 @@ export function createNextQuestion(usedItemIds: string[], score: number, difficu
   }
 
   const promptItem = pickRandom(fallbackItems);
-  const options = buildOptions(promptItem, mode);
+  const options = buildOptions(promptItem, mode, romanizationMode);
   const difficulty = getDifficultyPresetById(difficultyId);
 
   return {
     mode,
-    prompt: mode === 'hangul-to-latin' ? promptItem.glyph : promptItem.romanization,
+    prompt: mode === 'hangul-to-latin' ? promptItem.glyph : getRomanization(promptItem, romanizationMode),
     promptItem,
     options,
     correctOptionId: promptItem.id,
@@ -98,8 +103,8 @@ export function resolveAnswer(session: QuizSession, selectedOptionId: string | n
   return { nextSession, finished: null };
 }
 
-export function advanceAfterResult(session: QuizSession, difficultyId: DifficultyId): QuizSession {
-  const nextQuestion = createNextQuestion(session.usedItemIds, session.score, difficultyId);
+export function advanceAfterResult(session: QuizSession, difficultyId: DifficultyId, romanizationMode: RomanizationMode): QuizSession {
+  const nextQuestion = createNextQuestion(session.usedItemIds, session.score, difficultyId, romanizationMode);
 
   return {
     ...session,
@@ -128,10 +133,10 @@ export function formatDuration(totalMs: number): string {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-export function buildOptions(promptItem: QuizItem, mode: QuestionMode): QuestionOption[] {
+export function buildOptions(promptItem: QuizItem, mode: QuestionMode, romanizationMode: RomanizationMode): QuestionOption[] {
   const pool = HANGUL_ITEMS.filter((candidate) => candidate.id !== promptItem.id && candidate.type === promptItem.type);
   const scoredPool = pool
-    .map((candidate) => ({ candidate, score: getDistractorScore(promptItem, candidate) }))
+    .map((candidate) => ({ candidate, score: getDistractorScore(promptItem, candidate, romanizationMode) }))
     .sort((left, right) => right.score - left.score);
 
   const veryClose = scoredPool.filter((entry) => entry.score >= 28).map((entry) => entry.candidate);
@@ -156,11 +161,13 @@ export function buildOptions(promptItem: QuizItem, mode: QuestionMode): Question
   return items.map((item) => ({
     id: item.id,
     item,
-    label: mode === 'hangul-to-latin' ? item.romanization : item.glyph
+    label: mode === 'hangul-to-latin' ? getRomanization(item, romanizationMode) : item.glyph
   }));
 }
 
-export function getDistractorScore(source: QuizItem, candidate: QuizItem): number {
+export function getDistractorScore(source: QuizItem, candidate: QuizItem, romanizationMode: RomanizationMode): number {
+  const sourceRomanization = getRomanization(source, romanizationMode);
+  const candidateRomanization = getRomanization(candidate, romanizationMode);
   let score = 0;
 
   if (candidate.difficultyBucket === source.difficultyBucket) {
@@ -181,11 +188,11 @@ export function getDistractorScore(source: QuizItem, candidate: QuizItem): numbe
 
     score += sharedCount(source.families, candidate.families) * 4;
 
-    if (source.romanization.length === candidate.romanization.length) {
+    if (sourceRomanization.length === candidateRomanization.length) {
       score += 2;
     }
 
-    if (source.romanization[0] && source.romanization[0] === candidate.romanization[0]) {
+    if (sourceRomanization[0] && sourceRomanization[0] === candidateRomanization[0]) {
       score += 2;
     }
 
@@ -225,11 +232,11 @@ export function getDistractorScore(source: QuizItem, candidate: QuizItem): numbe
     score += 2;
   }
 
-  if (source.romanization.length === candidate.romanization.length) {
+  if (sourceRomanization.length === candidateRomanization.length) {
     score += 1;
   }
 
-  if (source.romanization[0] && source.romanization[0] === candidate.romanization[0]) {
+  if (sourceRomanization[0] && sourceRomanization[0] === candidateRomanization[0]) {
     score += 1;
   }
 
