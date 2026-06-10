@@ -13,6 +13,8 @@ export type SfxEvent =
 export interface SfxController {
   play: (event: SfxEvent) => void;
   setVolume: (volume: number) => void;
+  suspend: () => void;
+  resume: () => void;
 }
 
 export function createSfxController(initialVolume: number): SfxController {
@@ -105,7 +107,19 @@ export function createSfxController(initialVolume: number): SfxController {
     sfxVolume = clampVolume(nextVolume);
   };
 
-  return { play, setVolume };
+  const suspend = () => {
+    if (audioContext && audioContext.state === 'running') {
+      void audioContext.suspend();
+    }
+  };
+
+  const resume = () => {
+    if (audioContext && audioContext.state === 'suspended' && sfxVolume > 0) {
+      void audioContext.resume();
+    }
+  };
+
+  return { play, setVolume, suspend, resume };
 
   function getContext(): AudioContext | null {
     if (audioContext) {

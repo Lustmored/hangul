@@ -21,6 +21,8 @@ export interface MusicController {
   prime: () => void;
   setTrack: (track: MusicTrack) => void;
   setVolume: (volume: number) => void;
+  suspend: () => void;
+  resume: () => void;
   getDebugState: () => MusicDebugState;
   dispose: () => void;
 }
@@ -81,6 +83,25 @@ export function createMusicController(initialVolume: number): MusicController {
 
   function setVolume(volume: number) {
     musicVolume = clampVolume(volume);
+    sync();
+  }
+
+  function suspend() {
+    if (!managedByTrack) {
+      return;
+    }
+
+    stopFade();
+    for (const managed of Object.values(managedByTrack)) {
+      managed.audio.pause();
+    }
+  }
+
+  function resume() {
+    if (!primed) {
+      return;
+    }
+
     sync();
   }
 
@@ -282,7 +303,7 @@ export function createMusicController(initialVolume: number): MusicController {
     return managed.loadingPromise;
   }
 
-  return { prime, setTrack, setVolume, getDebugState, dispose };
+  return { prime, setTrack, setVolume, suspend, resume, getDebugState, dispose };
 }
 
 function createManagedAudio(

@@ -41,6 +41,43 @@ export function App() {
   }, [state.screen]);
 
   useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden) {
+        musicRef.current.suspend();
+        sfxRef.current.suspend();
+        return;
+      }
+
+      if (!stateRef.current.settings.audioMuted) {
+        musicRef.current.resume();
+        sfxRef.current.resume();
+      }
+    };
+
+    const handlePageHide = () => {
+      musicRef.current.suspend();
+      sfxRef.current.suspend();
+    };
+
+    const handlePageShow = () => {
+      if (!document.hidden && !stateRef.current.settings.audioMuted) {
+        musicRef.current.resume();
+        sfxRef.current.resume();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('pageshow', handlePageShow);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('pageshow', handlePageShow);
+    };
+  }, []);
+
+  useEffect(() => {
     return () => {
       musicRef.current.dispose();
     };
