@@ -36,7 +36,7 @@ export function createSfxController(initialVolume: number): SfxController {
     }
 
     const now = context.currentTime;
-    const volumeMultiplier = 0.35 + (sfxVolume / 100) * 1.65;
+    const volumeMultiplier = (0.35 + (sfxVolume / 100) * 1.65) * 1.1;
 
     switch (event) {
       case 'start':
@@ -74,7 +74,7 @@ export function createSfxController(initialVolume: number): SfxController {
         ]);
         break;
       case 'next':
-        tone(context, now, 'triangle', 520, 0.05, 0.04 * volumeMultiplier, 0.035);
+        tone(context, now, 'triangle', 520, 0.05, 0.05 * volumeMultiplier, 0.035);
         break;
       case 'win':
         sequence(context, now, volumeMultiplier, [
@@ -93,9 +93,9 @@ export function createSfxController(initialVolume: number): SfxController {
         break;
       case 'gameover':
         sequence(context, now, volumeMultiplier, [
-          ['sawtooth', 240, 0.08, 0.04],
-          ['sawtooth', 180, 0.09, 0.045],
-          ['sawtooth', 140, 0.11, 0.05]
+          ['sawtooth', 240, 0.08, 0.058],
+          ['sawtooth', 180, 0.09, 0.064],
+          ['sawtooth', 140, 0.11, 0.07]
         ]);
         break;
       default:
