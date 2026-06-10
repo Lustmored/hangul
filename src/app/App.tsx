@@ -41,39 +41,43 @@ export function App() {
   }, [state.screen]);
 
   useEffect(() => {
-    const handleVisibility = () => {
-      if (document.hidden) {
-        musicRef.current.suspend();
-        sfxRef.current.suspend();
-        return;
-      }
-
-      if (!stateRef.current.settings.audioMuted) {
-        musicRef.current.resume();
-        sfxRef.current.resume();
-      }
-    };
-
-    const handlePageHide = () => {
+    const suspendAllAudio = () => {
       musicRef.current.suspend();
       sfxRef.current.suspend();
     };
 
-    const handlePageShow = () => {
+    const resumeAllAudio = () => {
       if (!document.hidden && !stateRef.current.settings.audioMuted) {
         musicRef.current.resume();
         sfxRef.current.resume();
       }
     };
 
+    const handleVisibility = () => {
+      if (document.hidden) {
+        suspendAllAudio();
+        return;
+      }
+
+      resumeAllAudio();
+    };
+
     document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('pagehide', handlePageHide);
-    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('pagehide', suspendAllAudio);
+    window.addEventListener('pageshow', resumeAllAudio);
+    window.addEventListener('blur', suspendAllAudio);
+    window.addEventListener('focus', resumeAllAudio);
+    document.addEventListener('freeze', suspendAllAudio as EventListener);
+    document.addEventListener('resume', resumeAllAudio as EventListener);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('pagehide', handlePageHide);
-      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('pagehide', suspendAllAudio);
+      window.removeEventListener('pageshow', resumeAllAudio);
+      window.removeEventListener('blur', suspendAllAudio);
+      window.removeEventListener('focus', resumeAllAudio);
+      document.removeEventListener('freeze', suspendAllAudio as EventListener);
+      document.removeEventListener('resume', resumeAllAudio as EventListener);
     };
   }, []);
 
